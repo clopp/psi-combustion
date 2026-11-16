@@ -5,6 +5,7 @@ Arma la carpeta _site/ que se publica:
       index.html        <- landing (desde landing/)
       assets/           <- imágenes de la landing
       dashboard/        <- dashboard (desde web/)
+      diapositivas/     <- presentación (archivos .html de la raíz del proyecto)
 
 Uso (Windows, macOS o Linux):
     python construir_sitio.py            # solo arma _site/
@@ -14,6 +15,7 @@ La landing enlaza al dashboard con la ruta relativa "dashboard/", así que
 funciona igual en local, en GitHub Pages o en cualquier hosting estático.
 """
 import http.server
+import re
 import shutil
 import socketserver
 import sys
@@ -25,6 +27,7 @@ RAIZ = Path(__file__).resolve().parent
 LANDING = RAIZ / "landing"
 DASHBOARD = RAIZ / "web"
 SALIDA = RAIZ / "_site"
+DIAPOSITIVAS = SALIDA / "diapositivas"
 PUERTO = 8000
 
 # Nunca se publican: claves, dependencias ni archivos temporales
@@ -54,11 +57,37 @@ def construir() -> None:
         shutil.rmtree(SALIDA)
     shutil.copytree(LANDING, SALIDA, ignore=IGNORAR)
     shutil.copytree(origen_dashboard, SALIDA / "dashboard", ignore=IGNORAR)
+    copiar_diapositivas()
     (SALIDA / ".nojekyll").touch()  # evita que GitHub Pages ignore carpetas que empiezan por "_"
 
     print("Sitio listo en _site/")
     print("  /           -> landing")
     print(f"  /dashboard/ -> {origen_dashboard.relative_to(RAIZ)}/")
+
+
+def copiar_diapositivas() -> None:
+    """Copia los .html de la raíz del proyecto a _site/diapositivas/.
+    Si hay uno solo, también queda como index.html para abrirlo en /diapositivas/."""
+    archivos = sorted(RAIZ.glob("*.html"))
+    if not archivos:
+        return
+    DIAPOSITIVAS.mkdir(parents=True, exist_ok=True)
+    for archivo in archivos:
+        shutil.copy2(archivo, DIAPOSITIVAS / archivo.name)
+        avisar_recursos_locales(archivo)
+    if len(archivos) == 1 and archivos[0].name != "index.html":
+        shutil.copy2(archivos[0], DIAPOSITIVAS / "index.html")
+    print("  /diapositivas/ -> " + ", ".join(a.name for a in archivos))
+
+
+def avisar_recursos_locales(archivo: Path) -> None:
+    """Avisa si la presentación usa imágenes o archivos locales que no se copian."""
+    texto = archivo.read_text(encoding="utf-8", errors="ignore")
+    rutas = re.findall(r'(?:src|href)\s*=\s*["\']([^"\'#]+)["\']', texto)
+    locales = sorted({r for r in rutas if not r.startswith(("http:", "https:", "data:", "mailto:", "//"))})
+    if locales:
+        print(f"  Aviso: {archivo.name} usa archivos locales que no se copian: " + ", ".join(locales[:8]))
+        print("         Incrústalos en el HTML o dime cuáles son para copiarlos también.")
 
 
 def servir() -> None:
