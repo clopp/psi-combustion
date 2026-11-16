@@ -50,19 +50,26 @@ def construir() -> None:
     if not (LANDING / "index.html").exists():
         sys.exit("No se encontró landing/index.html")
     origen_dashboard = carpeta_del_dashboard()
-    if not (origen_dashboard / "index.html").exists():
-        sys.exit(f"No se encontró index.html en {origen_dashboard.relative_to(RAIZ)}/")
+    hay_dashboard = (origen_dashboard / "index.html").exists()
 
     if SALIDA.exists():
         shutil.rmtree(SALIDA)
     shutil.copytree(LANDING, SALIDA, ignore=IGNORAR)
-    shutil.copytree(origen_dashboard, SALIDA / "dashboard", ignore=IGNORAR)
+    if hay_dashboard:
+        shutil.copytree(origen_dashboard, SALIDA / "dashboard", ignore=IGNORAR)
     copiar_diapositivas()
     (SALIDA / ".nojekyll").touch()  # evita que GitHub Pages ignore carpetas que empiezan por "_"
 
     print("Sitio listo en _site/")
     print("  /           -> landing")
-    print(f"  /dashboard/ -> {origen_dashboard.relative_to(RAIZ)}/")
+    if hay_dashboard:
+        print(f"  /dashboard/ -> {origen_dashboard.relative_to(RAIZ)}/")
+    else:
+        # Se publica igual la landing y las diapositivas; el botón del dashboard dará 404 hasta resolverlo
+        print(f"  AVISO: no hay index.html en {origen_dashboard.relative_to(RAIZ)}/; el dashboard NO se publicó.")
+        encontrados = [p.relative_to(RAIZ) for p in DASHBOARD.rglob("index.html") if "node_modules" not in p.parts]
+        if encontrados:
+            print("         index.html encontrados dentro de web/: " + ", ".join(map(str, encontrados[:5])))
 
 
 def copiar_diapositivas() -> None:
