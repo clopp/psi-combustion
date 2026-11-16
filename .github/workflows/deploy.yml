@@ -26,10 +26,10 @@ jobs:
       - uses: actions/checkout@v4
 
       # Si el dashboard se compila con npm, descomenta estas líneas:
-      # - uses: actions/setup-node@v4
-      #   with: { node-version: 20 }
-      # - run: npm ci && npm run build
-      #   working-directory: web
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm ci && npm run build
+        working-directory: web
 
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }

@@ -1,0 +1,38 @@
+/* Reset, tipografía y foco */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--fondo);
+  color: var(--tinta);
+  font-family: var(--fuente);
+  font-size: 15px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+h1, h2, h3, h4, p { margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+img, svg { display: block; max-width: 100%; }
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--llama); outline-offset: 2px; border-radius: 4px; }
+[hidden] { display: none !important; }
+.oculto {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Chino simplificado: Noto Sans SC con respaldo del sistema (los números siguen en Public Sans) */
+:lang(zh) { font-family: "Public Sans", var(--fuente-zh); }
+:lang(zh) .mapa text, :lang(zh) .termo-iss-texto { font-family: "Public Sans", var(--fuente-zh); }

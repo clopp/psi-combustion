@@ -1,0 +1,155 @@
+/* Contenedor, cabecera, pestañas y rejillas de las 4 pestañas.
+   Breakpoints: 1 columna <800px, 2 columnas 800-1199px, 3 columnas ≥1200px. */
+.contenedor {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding-inline: clamp(16px, 3vw, 32px);
+}
+
+/* Barra fija: cabecera + pestañas (sticky por debajo de 1200×680; fila fija del grid en escritorio) */
+.barra-fija { position: sticky; top: 0; z-index: 20; }
+
+/* Cabecera (≤84 px): marca | titular | contador de origen | columna idioma / cargar fichas */
+.cabecera { background: var(--superficie); border-bottom: 1px solid var(--linea); padding-top: env(safe-area-inset-top, 0px); }
+.cabecera-interior {
+  display: grid; align-items: center; gap: 4px 20px; padding-block: 8px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "marca titular acciones";
+  min-height: 68px; max-height: 84px;
+}
+.marca { grid-area: marca; display: flex; align-items: center; gap: 10px; }
+.marca-nombre { font-size: 20px; font-weight: 700; letter-spacing: 0.04em; color: var(--tinta); white-space: nowrap; }
+.titular { grid-area: titular; min-width: 0; text-align: center; }
+.titular h1 { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--morado); line-height: 1.3; }
+.titular h1, .titular p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.titular p { color: var(--tenue); font-size: 13px; line-height: 1.35; }
+.acciones-cabecera { grid-area: acciones; display: flex; align-items: center; gap: 14px; }
+.columna-cabecera { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+@media (max-width: 799px) {
+  .cabecera-interior { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "marca acciones" "titular titular"; max-height: none; }
+  .titular { text-align: left; }
+  .titular p { display: none; }
+  .origen-texto { display: none; }
+  .acciones-cabecera { gap: 8px; }
+  .marca { min-width: 0; }
+  .marca-nombre { overflow: hidden; text-overflow: ellipsis; }
+}
+@media (max-width: 520px) {
+  .marca { gap: 6px; }
+  .marca-nombre { font-size: 16px; letter-spacing: 0; }
+  .origen-boton { padding: 4px 8px; }
+  .origen-n { font-size: 20px; }
+}
+
+/* Pestañas: una línea de ≤44 px */
+.barra-pestanas { background: var(--superficie); border-bottom: 1px solid var(--linea); }
+.pestanas { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: thin; }
+.panel-pestana { position: relative; padding-block: clamp(12px, 2vw, 20px) 48px; }
+
+/* Columnas con scroll fino */
+.columna { min-width: 0; position: relative; }
+.columna, .panel-pestana, .reco-lista { scrollbar-width: thin; scrollbar-color: var(--linea) transparent; }
+
+/* Escritorio sin scroll de página: la app ocupa 100dvh y solo se mueve el contenido del panel */
+@media (min-width: 1200px) and (min-height: 680px) {
+  body { overflow: hidden; height: 100dvh; }
+  #app { display: grid; grid-template-rows: auto minmax(0, 1fr); height: 100dvh; overflow: hidden; position: relative; }
+  .barra-fija { position: static; }
+  .area-paneles { min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr); }
+  .panel-pestana { min-height: 0; height: 100%; overflow: auto; padding-block: 12px; }
+  .panel-pestana:has(> .rejilla-ajustada) { overflow: hidden; }
+  .rejilla.rejilla-ajustada { height: 100%; align-items: stretch; }
+  .rejilla-ajustada > .columna { min-height: 0; overflow: auto; }
+  .columna.columna-centro { display: flex; flex-direction: column; gap: 10px; }
+  .columna-centro > * { flex: 0 0 auto; }
+  .columna-centro > .zona-crece { flex: 1 1 auto; min-height: 200px; display: flex; }
+  .zona-crece > .bloque { flex: 1 1 auto; min-height: 0; grid-template-rows: auto auto minmax(0, 1fr); }
+  .zona-crece .reco-lista { overflow: auto; min-height: 0; }
+
+  /* Cobertura: franja arriba y tres columnas que llenan el alto restante; la lista con su propio scroll */
+  .panel-pestana:has(> .vista-ajustada:not([hidden])) { overflow: hidden; }
+  .vista-ajustada { height: 100%; display: flex; flex-direction: column; gap: 10px; }
+  .vista-ajustada > * { flex: 0 0 auto; }
+  .vista-ajustada > .rejilla-ajustada { flex: 1 1 auto; min-height: 0; }
+  .rejilla-cobertura > .col-lista { display: flex; overflow: hidden; }
+  .rejilla-cobertura > .columna > .bloque { min-height: 100%; }
+  .col-lista > .bloque-lista { flex: 1 1 auto; min-height: 0; grid-template-rows: auto minmax(0, 1fr); }
+  /* Mapa: el gráfico llena el alto del panel */
+  .rejilla-mapa > .col-grafico { display: flex; overflow: hidden; }
+  .col-grafico > .bloque-mapa { flex: 1 1 auto; min-height: 0; grid-template-rows: auto minmax(0, 1fr); }
+  .bloque-mapa .mapa-lienzo { min-height: 0; overflow: hidden; }
+  .bloque-mapa .mapa-tabla { min-height: 0; overflow: auto; }
+  .col-lista .grupos { overflow: auto; min-height: 0; padding-right: 4px; scrollbar-width: thin; scrollbar-color: var(--linea) transparent; }
+}
+
+/* Rejillas base */
+.rejilla { display: grid; gap: 20px; grid-template-columns: 1fr; align-items: start; }
+
+/* Experimento: izq. punto de partida, centro atmósfera y llamas, der. condiciones */
+.rejilla-experimento { grid-template-areas: "izq" "centro" "der"; }
+.rejilla-experimento > .col-izq { grid-area: izq; }
+.rejilla-experimento > .col-centro { grid-area: centro; }
+.rejilla-experimento > .col-der { grid-area: der; }
+
+/* Cobertura: franja superior + termómetro, factores, investigaciones */
+.vista-cobertura { display: grid; gap: 12px; }
+.rejilla-cobertura { grid-template-areas: "termo" "factores" "lista"; }
+.rejilla-cobertura > .col-termo { grid-area: termo; }
+.rejilla-cobertura > .col-factores { grid-area: factores; }
+.rejilla-cobertura > .col-lista { grid-area: lista; }
+
+/* Alcance: vacíos del escenario | completitud de las fichas */
+.rejilla-alcance { grid-template-columns: 1fr; }
+
+/* Mapa: gráfico y panel lateral */
+.rejilla-mapa { grid-template-areas: "grafico" "lateral"; }
+.rejilla-mapa > .col-grafico { grid-area: grafico; }
+.rejilla-mapa > .col-lateral { grid-area: lateral; }
+
+@media (min-width: 800px) {
+  .rejilla-experimento {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: "centro centro" "izq der";
+  }
+  .rejilla-cobertura {
+    grid-template-columns: minmax(220px, 1fr) 2fr;
+    grid-template-areas: "termo factores" "lista lista";
+  }
+  .rejilla-mapa {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: "grafico grafico" "lateral lateral";
+  }
+}
+
+@media (min-width: 1200px) {
+  .rejilla-experimento {
+    grid-template-columns: minmax(220px, 1fr) minmax(0, 2.2fr) minmax(240px, 1.1fr);
+    grid-template-areas: "izq centro der";
+  }
+  .rejilla-cobertura {
+    grid-template-columns: minmax(380px, 1.15fr) minmax(0, 1.2fr) minmax(0, 1.25fr);
+    gap: 14px;
+    grid-template-areas: "termo factores lista";
+  }
+  .rejilla-alcance { grid-template-columns: minmax(0, 1.9fr) minmax(320px, 1fr); gap: 14px; }
+  .rejilla-mapa {
+    gap: 14px;
+    grid-template-columns: minmax(0, 1fr) minmax(250px, 290px);
+    grid-template-areas: "grafico lateral";
+  }
+}
+
+/* Textos largos (pt) y pantallas angostas: nada empuja el ancho de la página */
+.columna-centro { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 520px) {
+  .cabecera-interior { column-gap: 8px; grid-template-areas: "marca columna" "titular origen"; }
+  .acciones-cabecera { display: contents; }
+  .acciones-cabecera > [data-zona="origen"] { grid-area: origen; justify-self: end; }
+  .columna-cabecera { grid-area: columna; }
+  .marca-nombre { overflow: visible; }
+  .titular h1 { white-space: normal; font-size: 13.5px; line-height: 1.25; }
+  .selector-idioma button { padding: 2px 7px; }
+  .reco-cab .segmentado { display: flex; width: 100%; }
+  .reco-cab .segmentado button { flex: 1 1 0; min-width: 0; justify-content: center; padding-inline: 6px; gap: 4px; }
+}
