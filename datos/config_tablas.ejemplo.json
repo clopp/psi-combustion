@@ -1,0 +1,18 @@
+{
+  "_instrucciones": "Copia este archivo como config_tablas.json. Crea un bloque por cada tabla de datos/tablas/. Los nombres de columna de abajo son de EJEMPLO: reemplazalos por los reales (usa el comando 'columnas' para verlos). Unidades validas: presion = kPa, psi, atm, torr, bar; flujo = cm/s, mm/s, m/s.",
+  "NOMBRE_INVESTIGACION": {
+    "archivo": "nombre_del_archivo.xlsx",
+    "filas_a_saltar": 0,
+    "hoja": null,
+    "columnas": {
+      "Test ID": "id_ensayo",
+      "Fuel": "material",
+      "O2 (%)": "oxigeno_pct",
+      "Pressure": "presion",
+      "Flow velocity": "flujo",
+      "Extinguished": "se_extinguio"
+    },
+    "unidades": { "presion": "psi", "flujo": "cm/s" },
+    "constantes": { "fase": "solido", "geometria": "varilla" }
+  }
+}

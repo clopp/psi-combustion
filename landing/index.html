@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BLUE FLAME — Fire safety in space</title>
+<meta name="description" content="A dashboard that turns NASA combustion experiments into clear answers for designing safer spacecraft, stations and lunar bases.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="BLUE FLAME — Fire safety in space">
+<meta property="og:description" content="A dashboard that turns NASA combustion experiments into clear answers for designing safer spacecraft, stations and lunar bases.">
+<!-- og:image (1200 × 630 px). AL PUBLICAR, cambia esta ruta relativa por la URL ABSOLUTA
+     (https://tu-dominio/assets/og-1200x630.png): las redes no resuelven rutas relativas ni ejecutan JavaScript.
+     Mantenla igual que CONFIG.imagenes.og. -->
+<meta property="og:image" content="assets/og-1200x630.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#140C19">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23fff'/%3E%3Cstop offset='.5' stop-color='%236E62FF'/%3E%3Cstop offset='1' stop-color='%233A2BC8' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='48' fill='url(%23g)'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800;900&display=swap">
+<!-- Noto Sans SC se carga solo cuando se elige 中文 (ver ensureZhFont en el script). -->
+<script>document.documentElement.classList.add("js");</script>
+<style>
+:root{
+  --magenta:#D1117A; --magenta-d:#AA0E63; --magenta-l:#FF5CAD;
+  --purple:#580C78; --purple-soft:#F1E7F6;
+  --gray:#EBEFF2; --white:#FFFFFF;
+  --ink:#140C19; --ink-2:#1D1224; --ink-3:#2A1B34;
+  --text:#2B2233; --muted:#5C5166;
+  --on-dark:#F4EEF7; --on-dark-muted:#BDB1C6;
+  --line-light:#D5DBE1; --line-dark:rgba(244,238,247,.14);
+  --r-lg:24px; --r-md:14px; --r-sm:8px;
+  --maxw:1180px; --nav-h:68px;
+  --font:"Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+:lang(zh){ --font:"Public Sans","Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif; }
+
+*,*::before,*::after{ box-sizing:border-box; }
+html{ scroll-padding-top:calc(var(--nav-h) + 12px); -webkit-text-size-adjust:100%; }
+@media (prefers-reduced-motion:no-preference){ html{ scroll-behavior:smooth; } }
+body{
+  margin:0; font-family:var(--font); font-size:1.0625rem; line-height:1.62;
+  color:var(--text); background:var(--gray);
+  font-variant-numeric:tabular-nums; -webkit-font-smoothing:antialiased;
+}
+img{ max-width:100%; }
+h1,h2,h3{ margin:0; font-weight:800; line-height:1.08; letter-spacing:-.022em; text-wrap:balance; }
+:lang(zh) h1, :lang(zh) h2, :lang(zh) h3{ letter-spacing:0; line-height:1.3; }
+p{ margin:0; }
+a{ color:inherit; }
+:focus-visible{ outline:3px solid var(--magenta); outline-offset:3px; border-radius:6px; }
+.dark :focus-visible, .site-nav :focus-visible, .site-footer :focus-visible{ outline-color:var(--magenta-l); }
+.visually-hidden{ position:absolute!important; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+.skip{ position:absolute; left:16px; top:-60px; z-index:100; background:#fff; color:var(--purple); padding:10px 16px; border-radius:var(--r-sm); font-weight:700; }
+.skip:focus{ top:12px; }
+
+.wrap{ max-width:var(--maxw); margin:0 auto; padding:0 clamp(20px,4vw,40px); }
+.section{ padding:clamp(76px,10vw,132px) 0; }
+.bg-gray{ background:var(--gray); }
+.bg-white{ background:var(--white); }
+.dark{ background:var(--ink); color:var(--on-dark); }
+.h2{ font-size:clamp(2rem,4.3vw,3.3rem); color:var(--purple); max-width:22ch; }
+:lang(zh) .h2{ max-width:18em; }
+.dark .h2{ color:#fff; }
+.lead{ font-size:clamp(1.08rem,1.5vw,1.25rem); max-width:60ch; }
+
+/* Botones */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:.6em;
+  min-height:48px; padding:.75em 1.45em; border-radius:999px; border:2px solid transparent;
+  font:inherit; font-weight:700; font-size:1rem; line-height:1.2; text-decoration:none; text-align:center; cursor:pointer;
+  transition:background-color .2s, color .2s, border-color .2s;
+}
+.btn-primary{ background:var(--magenta); color:#fff; }
+.btn-primary:hover{ background:var(--magenta-d); }
+.btn-ghost{ border-color:currentColor; color:var(--purple); background:transparent; }
+.btn-ghost:hover{ background:var(--purple-soft); }
+.dark .btn-ghost{ color:var(--on-dark); }
+.dark .btn-ghost:hover{ background:rgba(255,255,255,.07); }
+.btn-lg{ min-height:60px; font-size:1.15rem; padding:.9em 2em; }
+
+/* Llamas pequeñas */
+.mini-flame{ display:block; flex:none; overflow:visible; }
+.breathe{ transform-box:fill-box; transform-origin:center; animation:breathe 3.6s ease-in-out infinite; }
+@keyframes breathe{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.045); } }
+
+/* Navegación */
+.site-nav{
+  position:fixed; inset:0 0 auto; z-index:50; color:var(--on-dark);
+  background:rgba(20,12,25,.88); -webkit-backdrop-filter:saturate(1.3) blur(12px); backdrop-filter:saturate(1.3) blur(12px);
+  border-bottom:1px solid var(--line-dark); padding-top:env(safe-area-inset-top,0px);
+}
+.nav-inner{ display:flex; align-items:center; gap:20px; height:var(--nav-h); }
+.logo{ display:inline-flex; align-items:center; gap:10px; color:#fff; text-decoration:none; font-weight:800; letter-spacing:.06em; font-size:1rem; white-space:nowrap; }
+.logo .mini-flame{ width:30px; height:30px; }
+.nav-panel{ display:flex; align-items:center; gap:18px; margin-left:auto; }
+.nav-links{ display:flex; gap:2px; list-style:none; margin:0; padding:0; }
+.nav-links a{ display:block; padding:8px 10px; border-radius:var(--r-sm); text-decoration:none; font-weight:500; font-size:.95rem; color:var(--on-dark-muted); white-space:nowrap; }
+.nav-links a:hover{ color:#fff; background:rgba(255,255,255,.06); }
+.lang{ display:flex; gap:2px; padding:3px; border:1px solid var(--line-dark); border-radius:999px; }
+.lang button{
+  min-width:38px; min-height:32px; padding:4px 10px; border:0; border-radius:999px; background:none; cursor:pointer;
+  font:inherit; font-size:.8rem; font-weight:700; color:var(--on-dark-muted);
+}
+.lang button:hover{ color:#fff; }
+.lang button[aria-pressed="true"]{ background:#fff; color:var(--purple); }
+.lang button[lang="zh"]{ font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",var(--font); }
+.nav-cta{ min-height:42px; padding:.55em 1.15em; font-size:.92rem; white-space:nowrap; }
+.menu-btn{
+  display:none; align-items:center; justify-content:center; width:46px; height:46px; margin-left:auto;
+  border:1px solid var(--line-dark); border-radius:12px; background:none; color:#fff; cursor:pointer;
+}
+.menu-btn svg{ width:22px; height:22px; }
+.menu-btn .i-close{ display:none; }
+.menu-btn[aria-expanded="true"] .i-open{ display:none; }
+.menu-btn[aria-expanded="true"] .i-close{ display:block; }
+@media (max-width:1120px){
+  .menu-btn{ display:inline-flex; }
+  .nav-panel{
+    position:absolute; top:100%; left:0; right:0; margin:0;
+    flex-direction:column; align-items:stretch; gap:20px;
+    padding:16px clamp(20px,4vw,40px) 28px; background:var(--ink); border-bottom:1px solid var(--line-dark);
+    max-height:calc(100svh - var(--nav-h)); overflow-y:auto;
+  }
+  .js .nav-panel{ display:none; }
+  .js .nav-panel.is-open{ display:flex; }
+  .nav-links{ flex-direction:column; }
+  .nav-links a{ padding:13px 4px; font-size:1.08rem; color:var(--on-dark); border-bottom:1px solid var(--line-dark); border-radius:0; }
+  .lang{ align-self:flex-start; }
+  .lang button{ min-height:40px; min-width:48px; font-size:.9rem; }
+  .nav-cta{ min-height:52px; font-size:1rem; }
+}
+
+/* Portada */
+.hero{
+  position:relative; overflow:hidden; display:flex; align-items:center;
+  min-height:min(100svh,940px);
+  padding:calc(var(--nav-h) + clamp(40px,7vw,90px)) 0 clamp(64px,8vw,110px);
+  background:radial-gradient(55% 55% at 76% 46%, rgba(88,12,120,.6), rgba(88,12,120,0) 72%), var(--ink);
+}
+.hero-grid{ display:grid; grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr); gap:clamp(28px,5vw,72px); align-items:center; }
+.hero h1{ font-size:clamp(2.6rem,6.3vw,5.4rem); letter-spacing:-.032em; color:#fff; max-width:14ch; line-height:1.02; }
+:lang(zh) .hero h1{ max-width:9em; line-height:1.2; letter-spacing:.01em; }
+.hero .lead{ color:var(--on-dark-muted); margin:28px 0 38px; max-width:50ch; }
+.hero-actions{ display:flex; flex-wrap:wrap; gap:14px; }
+.flame-stage{ justify-self:center; width:min(100%,500px); cursor:default; }
+.flame-stage svg{ display:block; width:100%; height:auto; overflow:visible; }
+.flame-caption{ display:grid; text-align:center; margin-top:4px; font-weight:600; color:#fff; font-size:.98rem; }
+.flame-caption span{ grid-area:1/1; transition:opacity .5s ease; }
+.flame-caption .c-earth{ opacity:0; }
+.flame-stage.is-earth .c-space{ opacity:0; }
+.flame-stage.is-earth .c-earth{ opacity:1; }
+.flame-hint{ text-align:center; color:var(--on-dark-muted); font-size:.86rem; margin-top:6px; }
+@media (max-width:860px){
+  .hero{ min-height:auto; }
+  .hero-grid{ grid-template-columns:1fr; }
+  .flame-stage{ width:min(78%,340px); order:-1; margin-bottom:-8px; }
+}
+
+/* Por qué importa */
+.why-top{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(32px,5vw,72px); align-items:start; }
+.why-top .lead{ margin-top:28px; color:var(--text); }
+.facts{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(22px,3vw,44px); margin-top:clamp(56px,7vw,88px); }
+.fact{ border-top:3px solid var(--purple); padding-top:24px; }
+.fact h3{ font-size:clamp(1.2rem,1.7vw,1.42rem); color:var(--purple); margin-bottom:12px; }
+.fact p{ color:var(--muted); }
+@media (max-width:900px){ .why-top{ grid-template-columns:1fr; } .facts{ grid-template-columns:1fr; } }
+
+/* Marcos de imagen */
+.shot{ margin:0; }
+.ph{
+  position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+  padding:20px; border-radius:var(--r-md); border:1px solid var(--line-light); color:var(--purple); text-align:center;
+  background:
+    repeating-linear-gradient(0deg, rgba(88,12,120,.05) 0 1px, transparent 1px 28px),
+    repeating-linear-gradient(90deg, rgba(88,12,120,.05) 0 1px, transparent 1px 28px),
+    linear-gradient(140deg,#F3E8F8 0%,#EEF1F4 52%,#FBE4F0 100%);
+}
+.ph svg{ width:36px; height:36px; opacity:.8; }
+.ph-label{ font-size:.82rem; font-weight:600; line-height:1.4; max-width:34ch; }
+.browser{ overflow:hidden; border-radius:var(--r-md); border:1px solid var(--line-light); background:#fff; box-shadow:0 28px 50px -30px rgba(88,12,120,.45); }
+.browser-bar{ display:flex; gap:6px; padding:10px 12px; background:#F5F6F8; border-bottom:1px solid var(--line-light); }
+.browser-bar span{ width:10px; height:10px; border-radius:50%; background:#D3D8DE; }
+.browser img{ display:block; width:100%; height:auto; object-fit:cover; }
+.shot figcaption{ font-size:.82rem; color:var(--muted); margin-top:10px; }
+
+/* Acerca de */
+.about-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(36px,6vw,96px); }
+.about-grid .lead{ margin-top:28px; }
+.about-sub{ font-size:1.3rem; color:var(--purple); margin-bottom:8px; }
+.points{ list-style:none; margin:0; padding:0; }
+.points li{ display:grid; grid-template-columns:48px minmax(0,1fr); gap:18px; padding:22px 0; border-bottom:1px solid var(--line-light); }
+.points li:last-child{ border-bottom:0; }
+.points h4{ margin:0 0 4px; font-size:1.08rem; color:var(--text); }
+.points p{ color:var(--muted); }
+.icon{ width:48px; height:48px; border-radius:14px; display:grid; place-items:center; background:var(--gray); color:var(--purple); }
+.icon svg{ width:24px; height:24px; }
+@media (max-width:900px){ .about-grid{ grid-template-columns:1fr; } }
+
+/* Para quién */
+.who-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(16px,2vw,24px); margin-top:clamp(44px,6vw,72px); }
+.who-card{ background:#fff; border-radius:var(--r-lg); padding:clamp(26px,3vw,38px); display:grid; grid-template-columns:auto minmax(0,1fr); gap:20px; align-items:start; }
+.who-card .icon{ background:#FCE5F1; color:var(--magenta); }
+.who-card h3{ font-size:1.22rem; color:var(--purple); margin-bottom:8px; line-height:1.2; }
+.who-card p{ color:var(--muted); }
+@media (max-width:760px){ .who-grid{ grid-template-columns:1fr; } }
+
+/* Cómo funciona */
+.steps{ list-style:none; margin:clamp(40px,5vw,64px) 0 0; padding:0; }
+.step{
+  display:grid; grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr); gap:clamp(28px,5vw,76px); align-items:center;
+  padding:clamp(40px,6vw,76px) 0; border-top:1px solid var(--line-light);
+}
+.step:nth-child(even){ grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr); }
+.step:nth-child(even) .step-text{ order:2; }
+.browser a{ display:block; cursor:zoom-in; }
+.step-num{ width:64px; height:64px; margin-bottom:22px; }
+.step-num text{ font:800 22px var(--font); fill:var(--purple); font-variant-numeric:tabular-nums; }
+.num-ring{ fill:none; stroke:var(--magenta); stroke-width:3; stroke-linecap:round; stroke-dasharray:176; stroke-dashoffset:0; transform:rotate(-90deg); transform-origin:32px 32px; }
+.num-track{ fill:none; stroke:var(--line-light); stroke-width:3; }
+.js .num-ring{ stroke-dashoffset:176; transition:stroke-dashoffset 1.2s cubic-bezier(.4,.1,.2,1) .2s; }
+.js .is-in .num-ring{ stroke-dashoffset:0; }
+.step h3{ font-size:clamp(1.55rem,2.6vw,2.1rem); color:var(--purple); margin-bottom:14px; }
+.step p{ color:var(--muted); max-width:46ch; }
+.shot-pair{ display:grid; grid-template-columns:1fr; gap:16px; }
+@media (max-width:860px){
+  .step, .step:nth-child(even){ grid-template-columns:1fr; }
+  .step:nth-child(even) .step-text{ order:0; }
+}
+
+/* Caso de uso */
+.case-panel{
+  margin-top:clamp(40px,5vw,60px); background:#fff; border-radius:var(--r-lg); overflow:hidden;
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); border-top:6px solid var(--magenta);
+}
+.case-sheet{ padding:clamp(26px,4vw,48px); }
+.case-sheet dl{ margin:0; }
+.case-row{ display:grid; grid-template-columns:minmax(110px,.38fr) minmax(0,1fr); gap:16px; padding:18px 0; border-bottom:1px solid var(--line-light); }
+.case-row:first-child{ padding-top:0; }
+.case-row dt{ font-weight:800; color:var(--purple); }
+.case-row dd{ margin:0; }
+.case-sheet .btn{ margin-top:30px; }
+.case-visual{ background:var(--gray); padding:clamp(20px,3vw,40px); display:flex; align-items:center; }
+.case-visual .shot{ width:100%; }
+@media (max-width:960px){ .case-panel{ grid-template-columns:1fr; } }
+@media (max-width:480px){ .case-row{ grid-template-columns:1fr; gap:4px; } }
+
+/* Conclusión */
+.find-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(14px,2vw,22px); margin-top:clamp(44px,6vw,72px); }
+.find{ background:var(--ink-2); border:1px solid var(--line-dark); border-radius:var(--r-lg); padding:clamp(26px,3vw,38px); }
+.find h3{ font-size:clamp(1.2rem,1.7vw,1.4rem); color:#fff; margin-bottom:12px; line-height:1.2; }
+.find p{ color:var(--on-dark-muted); }
+.beyond{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(24px,4vw,56px); margin-top:clamp(48px,6vw,80px); }
+.beyond div{ border-left:3px solid var(--magenta-l); padding-left:22px; }
+.beyond h3{ font-size:1.15rem; color:var(--magenta-l); margin-bottom:8px; }
+.beyond p{ color:var(--on-dark); font-size:1.08rem; }
+@media (max-width:820px){ .find-grid, .beyond{ grid-template-columns:1fr; } }
+
+/* Datos y proceso */
+.proc-wrap{ position:relative; margin:clamp(48px,6vw,72px) 0; }
+.proc-line{ position:absolute; top:27px; left:12.5%; right:12.5%; height:2px; background:var(--magenta); transform-origin:left center; }
+.js .proc-line{ transform:scaleX(0); transition:transform 1.6s cubic-bezier(.4,.1,.2,1) .15s; }
+.js .proc-wrap.is-in .proc-line{ transform:scaleX(1); }
+.proc{ position:relative; list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:24px; }
+.proc li{ text-align:center; }
+.proc-dot{
+  position:relative; z-index:1; width:56px; height:56px; margin:0 auto 20px; border-radius:50%;
+  display:grid; place-items:center; background:#fff; border:2px solid var(--purple); color:var(--purple); font-weight:800; font-size:1.15rem;
+}
+.proc h3{ font-size:1.15rem; color:var(--purple); margin-bottom:8px; }
+.proc p{ color:var(--muted); font-size:.98rem; max-width:30ch; margin:0 auto; }
+@media (max-width:860px){
+  .proc{ grid-template-columns:1fr; gap:30px; }
+  .proc li{ display:grid; grid-template-columns:56px minmax(0,1fr); gap:20px; text-align:left; }
+  .proc-dot{ margin:0; }
+  .proc p{ margin:0; max-width:none; }
+  .proc-line{ top:28px; bottom:28px; left:27px; right:auto; width:2px; height:auto; transform-origin:center top; }
+  .js .proc-line{ transform:scaleY(0); }
+  .js .proc-wrap.is-in .proc-line{ transform:scaleY(1); }
+}
+.data-foot{ display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr); gap:clamp(28px,5vw,64px); align-items:start; }
+.data-foot h3{ font-size:1.2rem; color:var(--purple); margin-bottom:10px; }
+.note{ background:var(--gray); border-radius:var(--r-md); padding:22px 24px; display:grid; grid-template-columns:24px minmax(0,1fr); gap:14px; color:var(--text); }
+.note svg{ width:24px; height:24px; color:var(--purple); margin-top:2px; }
+.data-links{ display:flex; flex-wrap:wrap; gap:12px; margin-top:28px; }
+@media (max-width:820px){ .data-foot{ grid-template-columns:1fr; } }
+
+/* Preguntas frecuentes */
+.faq-list{ margin-top:clamp(36px,5vw,56px); display:grid; gap:12px; max-width:860px; }
+.faq-list details{ background:#fff; border-radius:var(--r-md); border:1px solid transparent; }
+.faq-list details[open]{ border-color:var(--line-light); }
+.faq-list summary{
+  list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:20px;
+  padding:22px 24px; font-weight:700; font-size:1.1rem; color:var(--purple); border-radius:var(--r-md);
+}
+.faq-list summary::-webkit-details-marker{ display:none; }
+.faq-list summary::after{
+  content:""; flex:none; width:14px; height:14px;
+  background:linear-gradient(var(--magenta),var(--magenta)) center/100% 2px no-repeat, linear-gradient(var(--magenta),var(--magenta)) center/2px 100% no-repeat;
+  transition:transform .25s ease;
+}
+.faq-list details[open] summary::after{ transform:rotate(45deg); }
+.faq-list details p{ padding:0 24px 24px; color:var(--muted); max-width:66ch; }
+
+/* Cierre */
+.closing{ text-align:center; background:radial-gradient(50% 60% at 50% 100%, rgba(88,12,120,.55), rgba(88,12,120,0) 70%), var(--ink); }
+.closing .h2{ margin:0 auto; max-width:18ch; font-size:clamp(2.2rem,5vw,3.9rem); }
+:lang(zh) .closing .h2{ max-width:14em; }
+.closing-cta{ display:flex; align-items:center; justify-content:center; gap:22px; margin-top:44px; flex-wrap:wrap; }
+.closing-cta .mini-flame{ width:72px; height:72px; }
+
+/* Pie */
+.site-footer{ background:var(--ink-2); color:var(--on-dark-muted); padding:64px 0 calc(40px + env(safe-area-inset-bottom,0px)); font-size:.95rem; }
+.foot-grid{ display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr); gap:40px; }
+.foot-grid h2{ font-size:.95rem; color:#fff; margin-bottom:14px; letter-spacing:0; }
+.foot-grid ul{ list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+.foot-grid a{ color:var(--on-dark-muted); text-decoration:none; }
+.foot-grid a:hover{ color:#fff; text-decoration:underline; }
+.foot-brand p{ margin-top:16px; max-width:40ch; }
+.foot-bottom{ margin-top:48px; padding-top:24px; border-top:1px solid var(--line-dark); display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; }
+@media (max-width:820px){ .foot-grid{ grid-template-columns:1fr; } }
+
+/* Aparición al entrar en pantalla */
+.js .reveal{ opacity:0; transform:translateY(18px); transition:opacity .75s ease, transform .75s cubic-bezier(.2,.7,.2,1); transition-delay:calc(var(--d,0) * 90ms); }
+.js .reveal.is-in{ opacity:1; transform:none; }
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{ animation:none!important; transition:none!important; }
+  .js .reveal{ opacity:1; transform:none; }
+  .js .num-ring{ stroke-dashoffset:0; }
+  .js .proc-line{ transform:none!important; }
+}
+</style>
+</head>
+<body>
+
+<!-- Degradados y filtros compartidos por todas las llamas (el único azul de la página) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <radialGradient id="fbBody" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".16" stop-color="#ECEAFF"/>
+      <stop offset=".42" stop-color="#9890FF"/>
+      <stop offset=".7" stop-color="#6E62FF"/>
+      <stop offset="1" stop-color="#3A2BC8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="fbHalo" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#6E62FF" stop-opacity=".55"/>
+      <stop offset=".6" stop-color="#3A2BC8" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#3A2BC8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="fbWarm" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FF5A14" stop-opacity="0"/>
+      <stop offset=".16" stop-color="#FF6E1C" stop-opacity=".9"/>
+      <stop offset=".45" stop-color="#FFA632"/>
+      <stop offset=".7" stop-color="#FFD36A" stop-opacity=".95"/>
+      <stop offset=".88" stop-color="#FFE7A8" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="fbCore" cx="50%" cy="55%" r="50%">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".5" stop-color="#FFF6E0" stop-opacity=".85"/>
+      <stop offset="1" stop-color="#FFF6E0" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="fbWarmHalo" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#FF8A2A" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#FF8A2A" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="fbBlur" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="18"/></filter>
+    <filter id="fbSoft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2"/></filter>
+    <!-- Llama pequeña reutilizable -->
+    <symbol id="miniFlame" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="49" fill="url(#fbHalo)"/>
+      <circle cx="50" cy="50" r="31" fill="url(#fbBody)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<a class="skip" href="#contenido" data-i18n="skip">Saltar al contenido</a>
+
+<header class="site-nav">
+  <nav class="wrap nav-inner" data-i18n-aria="navLabel" aria-label="Navegación principal">
+    <a class="logo" href="#inicio" data-i18n-aria="logoLabel" aria-label="BLUE FLAME, ir al inicio">
+      <svg class="mini-flame" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><g class="breathe"><use href="#miniFlame"/></g></svg>
+      <span>BLUE FLAME</span>
+    </a>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav-panel" data-i18n-aria="menuOpen" aria-label="Abrir menú">
+      <svg class="i-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      <svg class="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div class="nav-panel" id="nav-panel">
+      <ul class="nav-links">
+        <li><a href="#acerca" data-i18n="navAbout">Acerca de</a></li>
+        <li><a href="#para-quien" data-i18n="navWho">Para quién</a></li>
+        <li><a href="#como-funciona" data-i18n="navHow">Cómo funciona</a></li>
+        <li><a href="#conclusion" data-i18n="navConclusion">Conclusión</a></li>
+        <li><a href="#datos" data-i18n="navData">Datos</a></li>
+      </ul>
+      <div class="lang" role="group" data-i18n-aria="langLabel" aria-label="Idioma">
+        <button type="button" data-lang="en" lang="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang="es" lang="es" aria-pressed="false">ES</button>
+        <button type="button" data-lang="zh" lang="zh" aria-pressed="false">中文</button>
+        <button type="button" data-lang="pt" lang="pt" aria-pressed="false">PT</button>
+      </div>
+      <a class="btn btn-primary nav-cta" href="#" data-link="dashboard" data-i18n="ctaDashboard">Abrir el dashboard</a>
+    </div>
+  </nav>
+</header>
+
+<main id="contenido">
+
+  <!-- 1. Portada -->
+  <section class="hero dark" id="inicio" aria-labelledby="hero-title">
+    <div class="wrap hero-grid">
+      <div>
+        <h1 id="hero-title" data-i18n="heroTitle">El fuego no se comporta igual en el espacio.</h1>
+        <p class="lead" data-i18n="heroSub">BLUE FLAME convierte décadas de experimentos de combustión de la NASA en respuestas claras para diseñar naves, estaciones y bases lunares más seguras.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" href="#" data-link="dashboard" data-i18n="ctaDashboard">Abrir el dashboard</a>
+          <a class="btn btn-ghost btn-lg" href="#como-funciona" data-i18n="heroHow">Cómo funciona</a>
+        </div>
+      </div>
+      <figure class="flame-stage" id="flameStage" style="margin:0">
+        <svg viewBox="0 0 400 400" role="img" data-i18n-aria="flameAria" aria-label="Ilustración animada de una llama: en microgravedad es una esfera azul; en la Tierra se alarga como una lágrima.">
+          <g class="breathe" id="flameGroup">
+            <circle id="haloBlue" cx="200" cy="220" r="160" fill="url(#fbHalo)" filter="url(#fbBlur)"/>
+            <ellipse id="haloWarm" cx="200" cy="205" rx="105" ry="165" fill="url(#fbWarmHalo)" filter="url(#fbBlur)" opacity="0"/>
+            <path id="flameBody" fill="url(#fbBody)" filter="url(#fbSoft)" d="M200 130C249.7 130 290 170.3 290 220C290 269.7 249.7 310 200 310C150.3 310 110 269.7 110 220C110 170.3 150.3 130 200 130Z"/>
+            <path id="flameWarm" fill="url(#fbWarm)" filter="url(#fbSoft)" opacity="0" d="M200 130C249.7 130 290 170.3 290 220C290 269.7 249.7 310 200 310C150.3 310 110 269.7 110 220C110 170.3 150.3 130 200 130Z"/>
+            <path id="flameCore" fill="url(#fbCore)" opacity=".85" transform="translate(200 238) scale(.42) translate(-200 -238)" d="M200 130C249.7 130 290 170.3 290 220C290 269.7 249.7 310 200 310C150.3 310 110 269.7 110 220C110 170.3 150.3 130 200 130Z"/>
+          </g>
+        </svg>
+        <figcaption>
+          <span class="flame-caption"><span class="c-space" data-i18n="flameSpace">En microgravedad: una esfera azul</span><span class="c-earth" data-i18n="flameEarth" aria-hidden="true">En la Tierra: una lágrima</span></span>
+          <span class="flame-hint" id="flameHint" data-i18n="heroHint" style="display:block">Desplázate o pasa el cursor sobre la llama.</span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 2. Por qué importa -->
+  <section class="section bg-gray" id="por-que" aria-labelledby="why-title">
+    <div class="wrap">
+      <div class="why-top">
+        <div class="reveal">
+          <h2 class="h2" id="why-title" data-i18n="whyTitle">Un incendio a 400 km de la Tierra no tiene salida de emergencia.</h2>
+          <p class="lead" data-i18n="whyText">La historia de la exploración espacial lo confirma: la tripulación del Apolo 1 murió en un incendio en una cabina llena de oxígeno; en la estación Mir, una falla en un generador de oxígeno provocó un incendio; y durante Artemis II sonó una alarma de humo con la tripulación lejos de casa.</p>
+        </div>
+        <figure class="shot reveal" style="--d:1" data-slot="porQue" data-ratio="4/3" data-size="1200 × 900 px"></figure>
+      </div>
+      <div class="facts">
+        <article class="fact reveal" style="--d:0"><h3 data-i18n="why1T">Arden con menos oxígeno</h3><p data-i18n="why1D">Con ventilación baja, las llamas sobreviven con menos oxígeno que en la Tierra: alrededor de 15 % en la estación espacial frente a cerca de 18 % en gravedad normal, según los resultados de SoFIE-MIST.</p></article>
+        <article class="fact reveal" style="--d:1"><h3 data-i18n="why2T">La base lunar será más inflamable</h3><p data-i18n="why2D">Para facilitar las caminatas lunares, la base y los rovers usarán 30 % de oxígeno o más a 10,2 psi o menos: más de un 40 % por encima del oxígeno de la Tierra.</p></article>
+        <article class="fact reveal" style="--d:2"><h3 data-i18n="why3T">Los datos existen, pero están dispersos</h3><p data-i18n="why3D">La base PSI de la NASA publica los experimentos, pero son difíciles de encontrar, comparar e interpretar.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Acerca de -->
+  <section class="section bg-white" id="acerca" aria-labelledby="about-title">
+    <div class="wrap about-grid">
+      <div class="reveal">
+        <h2 class="h2" id="about-title" data-i18n="aboutTitle">¿Qué es BLUE FLAME?</h2>
+        <p class="lead" data-i18n="aboutText">Un dashboard web que reúne las 24 investigaciones de combustión de la base de datos PSI de la NASA, las describe con los mismos campos y unidades, y las ordena según el escenario que tú definas: oxígeno, presión, material, gravedad y ventilación.</p>
+      </div>
+      <div class="reveal" style="--d:1">
+        <h3 class="about-sub" data-i18n="aboutSub">Lo que lo hace diferente</h3>
+        <ul class="points">
+          <li>
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
+            <div><h4 data-i18n="ab1T">Compara lo que antes era incomparable</h4><p data-i18n="ab1D">Cada experimento descrito con los mismos campos y unidades.</p></div>
+          </li>
+          <li>
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><ellipse cx="12" cy="12" rx="10.5" ry="4" transform="rotate(-20 12 12)"/></svg></span>
+            <div><h4 data-i18n="ab2T">Habla de lugares reales</h4><p data-i18n="ab2D">Conecta cada experimento con naves, la ISS, bases lunares y rovers.</p></div>
+          </li>
+          <li>
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke-dasharray="2.5 2.5"/></svg></span>
+            <div><h4 data-i18n="ab3T">Muestra lo que falta</h4><p data-i18n="ab3D">Señala qué condiciones nunca se han estudiado.</p></div>
+          </li>
+          <li>
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span>
+            <div><h4 data-i18n="ab4T">Es transparente</h4><p data-i18n="ab4D">Cada dato indica de dónde salió, y el cálculo usa reglas explicables, sin IA en tiempo real.</p></div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Para quién es -->
+  <section class="section bg-gray" id="para-quien" aria-labelledby="who-title">
+    <div class="wrap">
+      <h2 class="h2 reveal" id="who-title" data-i18n="whoTitle">Hecho para quienes diseñan, enseñan e investigan.</h2>
+      <div class="who-grid">
+        <article class="who-card reveal" style="--d:0">
+          <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 9H9l3-9zM9 11l-3 11M15 11l3 11M7.5 17h9"/></svg></span>
+          <div><h3 data-i18n="who1T">Ingenieros aeroespaciales y diseñadores de hábitats</h3><p data-i18n="who1D">Evalúan en segundos qué tan favorable es una cabina para un incendio y qué cambio reduce más el riesgo.</p></div>
+        </article>
+        <article class="who-card reveal" style="--d:1">
+          <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></span>
+          <div><h3 data-i18n="who2T">Investigadores</h3><p data-i18n="who2D">Encuentran los experimentos más cercanos a su pregunta y los vacíos que justifican nuevos estudios.</p></div>
+        </article>
+        <article class="who-card reveal" style="--d:0">
+          <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5h7a3 3 0 0 1 3 3v12a2.5 2.5 0 0 0-2.5-2.5H2zM22 5h-7a3 3 0 0 0-3 3v12a2.5 2.5 0 0 1 2.5-2.5H22z"/></svg></span>
+          <div><h3 data-i18n="who3T">Profesores y estudiantes</h3><p data-i18n="who3D">Exploran cómo el oxígeno, la presión y la gravedad cambian una llama, de forma visual y sin programar.</p></div>
+        </article>
+        <article class="who-card reveal" style="--d:1">
+          <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="M12 8c1.5 2 2.5 3 2.5 4.6a2.5 2.5 0 0 1-5 0C9.5 11 10.5 10 12 8z"/></svg></span>
+          <div><h3 data-i18n="who4T">Seguridad contra incendios en la Tierra</h3><p data-i18n="who4D">La tecnología de la NASA ha mejorado los extintores de niebla de agua, la detección de humo y el equipo de bomberos.</p></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Cómo funciona -->
+  <section class="section bg-white" id="como-funciona" aria-labelledby="how-title">
+    <div class="wrap">
+      <h2 class="h2 reveal" id="how-title" data-i18n="howTitle">De la pregunta a la respuesta en tres pasos.</h2>
+      <ol class="steps">
+        <li class="step">
+          <div class="step-text reveal">
+            <svg class="step-num" viewBox="0 0 64 64" aria-hidden="true"><circle class="num-track" cx="32" cy="32" r="28"/><circle class="num-ring" cx="32" cy="32" r="28"/><text x="32" y="40" text-anchor="middle">1</text></svg>
+            <h3 data-i18n="step1T">Define tu escenario</h3>
+            <p data-i18n="step1D">Elige un entorno, como la estación espacial o la base lunar, y ajusta oxígeno, presión, material, gravedad y ventilación. Las llamas y las recomendaciones cambian mientras mueves los controles.</p>
+          </div>
+          <figure class="shot reveal" style="--d:1" data-slot="experimento" data-ratio="16/10" data-size="1600 × 1000 px"></figure>
+        </li>
+        <li class="step">
+          <div class="step-text reveal">
+            <svg class="step-num" viewBox="0 0 64 64" aria-hidden="true"><circle class="num-track" cx="32" cy="32" r="28"/><circle class="num-ring" cx="32" cy="32" r="28"/><text x="32" y="40" text-anchor="middle">2</text></svg>
+            <h3 data-i18n="step2T">Examina los experimentos</h3>
+            <p data-i18n="step2D">Un termómetro muestra qué tan favorable es tu escenario para un incendio comparado con la ISS, y cinco barras explican por qué. Debajo, las investigaciones ordenadas por relevancia, con su ficha y opción de compararlas.</p>
+          </div>
+          <figure class="shot reveal" style="--d:1" data-slot="cobertura" data-ratio="16/10" data-size="1600 × 1000 px"></figure>
+        </li>
+        <li class="step">
+          <div class="step-text reveal">
+            <svg class="step-num" viewBox="0 0 64 64" aria-hidden="true"><circle class="num-track" cx="32" cy="32" r="28"/><circle class="num-ring" cx="32" cy="32" r="28"/><text x="32" y="40" text-anchor="middle">3</text></svg>
+            <h3 data-i18n="step3T">Descubre los límites</h3>
+            <p data-i18n="step3D">La pestaña Alcance revela las condiciones sin estudiar, y el Mapa de condiciones muestra dónde está tu escenario frente a todo lo investigado.</p>
+          </div>
+          <div class="shot-pair reveal" style="--d:1">
+            <figure class="shot" data-slot="alcance" data-ratio="16/10" data-size="1600 × 1000 px"></figure>
+            <figure class="shot" data-slot="mapa" data-ratio="16/10" data-size="1600 × 1000 px"></figure>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 6. Caso de uso -->
+  <section class="section bg-gray" id="caso" aria-labelledby="case-title">
+    <div class="wrap">
+      <h2 class="h2 reveal" id="case-title" data-i18n="caseTitle">Caso de uso: la cabina de un rover lunar.</h2>
+      <div class="case-panel reveal" style="--d:1">
+        <div class="case-sheet">
+          <dl>
+            <div class="case-row"><dt data-i18n="caseR1L">Escenario</dt><dd data-i18n="caseR1V">Tela, 30 % de oxígeno, 10,2 psi, gravedad lunar y ventilación suave.</dd></div>
+            <div class="case-row"><dt data-i18n="caseR2L">Resultado</dt><dd data-i18n="caseR2V">Favorabilidad mayor que la ISS (+2,8): pesan el oxígeno elevado y la gravedad lunar, que puede ampliar los límites de inflamabilidad de algunos materiales.</dd></div>
+            <div class="case-row"><dt data-i18n="caseR3L">Qué cambiarías</dt><dd data-i18n="caseR3V">Bajar el oxígeno a 21 % es el ajuste de mayor efecto.</dd></div>
+            <div class="case-row"><dt data-i18n="caseR4L">Vacíos</dt><dd data-i18n="caseR4V">Hay experimentos con tela y con 30 % de oxígeno, pero ninguno con ambos, y PSI no tiene datos en gravedad parcial.</dd></div>
+          </dl>
+          <a class="btn btn-primary" href="#" data-link="dashboard" data-i18n="caseCta">Probar este escenario</a>
+        </div>
+        <div class="case-visual">
+          <figure class="shot" data-slot="casoRover" data-ratio="16/10" data-size="1600 × 1000 px"></figure>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Conclusión -->
+  <section class="section dark" id="conclusion" aria-labelledby="con-title">
+    <div class="wrap">
+      <h2 class="h2 reveal" id="con-title" data-i18n="conTitle">Lo que aprendimos al organizar los datos.</h2>
+      <div class="find-grid">
+        <article class="find reveal" style="--d:0"><h3 data-i18n="con1T">El espacio favorece al fuego en condiciones inesperadas</h3><p data-i18n="con1D">Con ventilación suave, las llamas sobreviven con menos oxígeno que en la Tierra.</p></article>
+        <article class="find reveal" style="--d:1"><h3 data-i18n="con2T">La futura atmósfera lunar es un punto crítico</h3><p data-i18n="con2D">Para la atmósfera de exploración se calculó que 31,4 % de oxígeno es el límite que no aumentaría la velocidad de combustión a 8,2 psi.</p></article>
+        <!-- TODO: actualizar con la cifra final de fichas con dato de oxígeno (texto en TEXTOS.*.con3D) -->
+        <article class="find reveal" style="--d:0"><h3 data-i18n="con3T">La información clave está enterrada en texto</h3><p data-i18n="con3D">En las fichas públicas de PSI, datos como el oxígeno o la presión aparecen en párrafos narrativos y muchas veces ni siquiera se mencionan.</p></article>
+        <article class="find reveal" style="--d:1"><h3 data-i18n="con4T">Falta investigar la gravedad parcial</h3><p data-i18n="con4D">El entorno de las próximas misiones es el que menos datos tiene; experimentos como FM2 y LUCI llenarán ese vacío.</p></article>
+      </div>
+      <div class="beyond">
+        <div class="reveal"><h3 data-i18n="impactT">Impacto en la Tierra</h3><p data-i18n="impactD">Lo que se aprende sobre el fuego en el espacio ha mejorado extintores, detección de humo y equipos de protección.</p></div>
+        <div class="reveal" style="--d:1"><h3 data-i18n="visionT">Visión futura</h3><p data-i18n="visionD">Integrar los datos de cada ensayo individual, incorporar resultados en gravedad lunar cuando estén disponibles y ampliar el análisis a más materiales.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. Fuentes de datos y proceso -->
+  <section class="section bg-white" id="datos" aria-labelledby="data-title">
+    <div class="wrap">
+      <h2 class="h2 reveal" id="data-title" data-i18n="dataTitle">Detrás del dashboard.</h2>
+      <div class="proc-wrap reveal">
+        <div class="proc-line" aria-hidden="true"></div>
+        <ol class="proc" data-i18n-aria="procLabel" aria-label="Proceso de datos en cuatro pasos">
+          <li><span class="proc-dot" aria-hidden="true">1</span><div><h3 data-i18n="proc1T">Descarga</h3><p data-i18n="proc1D">Metadatos públicos de las 24 investigaciones de combustión de NASA PSI: 19 experimentos de vuelo y 5 estudios en tierra.</p></div></li>
+          <li><span class="proc-dot" aria-hidden="true">2</span><div><h3 data-i18n="proc2T">Caracterización</h3><p data-i18n="proc2D">Reglas y la API de Claude (Haiku 5.5) extraen combustible, oxígeno, presión, flujo y más, citando la frase original de cada dato.</p></div></li>
+          <li><span class="proc-dot" aria-hidden="true">3</span><div><h3 data-i18n="proc3T">Verificación automática</h3><p data-i18n="proc3D">Un programa comprueba que cada frase citada aparezca en el texto original de PSI; si no coincide, el dato se descarta.</p></div></li>
+          <li><span class="proc-dot" aria-hidden="true">4</span><div><h3 data-i18n="proc4T">Dashboard</h3><p data-i18n="proc4D">Relevancia, vacíos y favorabilidad se calculan en el navegador con reglas explicables, sin IA.</p></div></li>
+        </ol>
+      </div>
+      <div class="data-foot">
+        <div class="reveal">
+          <h3 data-i18n="sourcesT">Fuentes</h3>
+          <p data-i18n="sourcesD">Base de datos NASA Physical Sciences Informatics (PSI), enunciado del reto de NASA Space Apps y publicaciones científicas de la NASA y de revistas especializadas que respaldan las reglas de favorabilidad.</p>
+          <div class="data-links">
+            <a class="btn btn-ghost" href="#" data-link="repo" data-i18n="linkCode">Ver el código</a>
+            <a class="btn btn-ghost" href="#" data-link="proceso" data-i18n="linkProcess">Ver el proceso</a>
+          </div>
+        </div>
+        <p class="note reveal" style="--d:1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg>
+          <span data-i18n="note">La favorabilidad es un indicador orientativo basado en tendencias publicadas y no sustituye los ensayos de inflamabilidad de la NASA.</span>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. Preguntas frecuentes -->
+  <section class="section bg-gray" id="faq" aria-labelledby="faq-title">
+    <div class="wrap">
+      <h2 class="h2 reveal" id="faq-title" data-i18n="faqTitle">Preguntas frecuentes</h2>
+      <div class="faq-list">
+        <details class="reveal"><summary data-i18n="faq1Q">¿Usa inteligencia artificial?</summary><p data-i18n="faq1A">Solo de forma opcional para preparar los datos, y cada dato extraído se verifica contra el texto original. El dashboard calcula con reglas.</p></details>
+        <details class="reveal"><summary data-i18n="faq2Q">¿De dónde vienen los datos?</summary><p data-i18n="faq2A">De la base pública NASA PSI y de publicaciones científicas citadas.</p></details>
+        <details class="reveal"><summary data-i18n="faq3Q">¿Reemplaza los ensayos de materiales?</summary><p data-i18n="faq3A">No. Orienta y señala riesgos y vacíos, pero no certifica materiales.</p></details>
+        <details class="reveal"><summary data-i18n="faq4Q">¿Sirve fuera del espacio?</summary><p data-i18n="faq4A">Sí: ayuda a entender cómo el oxígeno, la presión y la ventilación afectan el fuego en cualquier entorno.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. Cierre -->
+  <section class="section dark closing" id="cierre" aria-labelledby="close-title">
+    <div class="wrap">
+      <h2 class="h2 reveal" id="close-title" data-i18n="closeTitle">¿Listo para ver cómo arde tu escenario?</h2>
+      <div class="closing-cta reveal" style="--d:1">
+        <svg class="mini-flame" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><g class="breathe"><use href="#miniFlame"/></g></svg>
+        <a class="btn btn-primary btn-lg" href="#" data-link="dashboard" data-i18n="ctaDashboard">Abrir el dashboard</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="logo" href="#inicio" data-i18n-aria="logoLabel" aria-label="BLUE FLAME, ir al inicio">
+          <svg class="mini-flame" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#miniFlame"/></svg>
+          <span>BLUE FLAME</span>
+        </a>
+        <p data-i18n="footDisclaimer">Proyecto independiente que usa datos públicos de la NASA. No está afiliado ni respaldado por la NASA.</p>
+      </div>
+      <nav data-i18n-aria="footNavLabel" aria-label="Navegación del pie">
+        <h2 data-i18n="footNavTitle">Explorar</h2>
+        <ul>
+          <li><a href="#acerca" data-i18n="navAbout">Acerca de</a></li>
+          <li><a href="#para-quien" data-i18n="navWho">Para quién</a></li>
+          <li><a href="#como-funciona" data-i18n="navHow">Cómo funciona</a></li>
+          <li><a href="#conclusion" data-i18n="navConclusion">Conclusión</a></li>
+          <li><a href="#datos" data-i18n="navData">Datos</a></li>
+        </ul>
+      </nav>
+      <div>
+        <h2 data-i18n="footTeam">Equipo</h2>
+        <ul id="teamList"></ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>NASA Space Apps Challenge 2026</span>
+      <a href="#" data-link="dashboard" data-i18n="ctaDashboard" style="color:var(--on-dark)">Abrir el dashboard</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* =====================================================================
+   CONFIGURACIÓN — edita solo este bloque
+   ===================================================================== */
+const CONFIG = {
+  urlDashboard: "dashboard/",   // ruta del dashboard dentro del sitio publicado (ver construir_sitio.py)
+  urlRepositorio: "#",          // repositorio del código
+  urlProceso: "#",              // tablero de planificación (opcional; si es "#", se oculta el enlace)
+  equipo: ["SUMO"], // nombres que aparecen en el pie de página
+  imagenes: {                   // rutas de imágenes; si están vacías, se muestra el marcador
+    // Las imágenes reales se muestran con su propia proporción (sin recortes).
+    experimento: "img/experimento.png",      // pestaña Experimento
+    cobertura: "img/cobertura.png",          // pestaña Cobertura
+    alcance: "img/alcance.png",              // pestaña Alcance
+    mapa: "img/mapa_condiciones.png",        // Mapa de condiciones
+    casoRover: "img/rover_lunar.png",        // pestaña Cobertura con el escenario del rover lunar
+    porQue: "img/fuego_microgravedad.jpg",   // llama en 1 g frente a microgravedad (con crédito)
+    og: "assets/og-1200x630.png" // imagen para redes sociales · 1200 × 630 px (al publicar, URL absoluta https://…)
+  },
+  creditoPorQue: "NASA",        // fuente de la imagen "porQue"; se muestra como "Imagen: NASA"
+  idiomaPorDefecto: "en",       // idioma de la primera visita: "en", "es", "zh" o "pt"
+  detectarIdiomaNavegador: false // true = usar el idioma del navegador si es uno de los cuatro;
+                                 // false = abrir siempre en idiomaPorDefecto
+};
+
+/* =====================================================================
+   TEXTOS — cuatro idiomas con las mismas claves
+   ===================================================================== */
+const TEXTOS = {
+  es: {
+    metaTitle: "BLUE FLAME — Seguridad contra incendios en el espacio",
+    metaDesc: "Dashboard que convierte los experimentos de combustión de la NASA en respuestas claras para diseñar naves, estaciones y bases lunares más seguras.",
+    skip: "Saltar al contenido",
+    navLabel: "Navegación principal",
+    logoLabel: "BLUE FLAME, ir al inicio",
+    menuOpen: "Abrir menú",
+    menuClose: "Cerrar menú",
+    langLabel: "Idioma",
+    navAbout: "Acerca de",
+    navWho: "Para quién",
+    navHow: "Cómo funciona",
+    navConclusion: "Conclusión",
+    navData: "Datos",
+    ctaDashboard: "Abrir el dashboard",
+    heroTitle: "El fuego no se comporta igual en el espacio.",
+    heroSub: "BLUE FLAME convierte décadas de experimentos de combustión de la NASA en respuestas claras para diseñar naves, estaciones y bases lunares más seguras.",
+    heroHow: "Cómo funciona",
+    flameAria: "Ilustración animada de una llama: en microgravedad es una esfera azul; en la Tierra se alarga como una lágrima.",
+    flameSpace: "En microgravedad: una esfera azul",
+    flameEarth: "En la Tierra: una lágrima",
+    heroHint: "Desplázate o pasa el cursor sobre la llama.",
+    whyTitle: "Un incendio a 400 km de la Tierra no tiene salida de emergencia.",
+    whyText: "La historia de la exploración espacial lo confirma: la tripulación del Apolo 1 murió en un incendio en una cabina llena de oxígeno; en la estación Mir, una falla en un generador de oxígeno provocó un incendio; y durante Artemis II sonó una alarma de humo con la tripulación lejos de casa.",
+    whyCreditPrefix: "Imagen:",
+    why1T: "Arden con menos oxígeno",
+    why1D: "Con ventilación baja, las llamas sobreviven con menos oxígeno que en la Tierra: alrededor de 15 % en la estación espacial frente a cerca de 18 % en gravedad normal, según los resultados de SoFIE-MIST.",
+    why2T: "La base lunar será más inflamable",
+    why2D: "Para facilitar las caminatas lunares, la base y los rovers usarán 30 % de oxígeno o más a 10,2 psi o menos: más de un 40 % por encima del oxígeno de la Tierra.",
+    why3T: "Los datos existen, pero están dispersos",
+    why3D: "La base PSI de la NASA publica los experimentos, pero son difíciles de encontrar, comparar e interpretar.",
+    aboutTitle: "¿Qué es BLUE FLAME?",
+    aboutText: "Un dashboard web que reúne las 24 investigaciones de combustión de la base de datos PSI de la NASA, las describe con los mismos campos y unidades, y las ordena según el escenario que tú definas: oxígeno, presión, material, gravedad y ventilación.",
+    aboutSub: "Lo que lo hace diferente",
+    ab1T: "Compara lo que antes era incomparable",
+    ab1D: "Cada experimento descrito con los mismos campos y unidades.",
+    ab2T: "Habla de lugares reales",
+    ab2D: "Conecta cada experimento con naves, la ISS, bases lunares y rovers.",
+    ab3T: "Muestra lo que falta",
+    ab3D: "Señala qué condiciones nunca se han estudiado.",
+    ab4T: "Es transparente",
+    ab4D: "Cada dato indica de dónde salió, y el cálculo usa reglas explicables, sin IA en tiempo real.",
+    whoTitle: "Hecho para quienes diseñan, enseñan e investigan.",
+    who1T: "Ingenieros aeroespaciales y diseñadores de hábitats",
+    who1D: "Evalúan en segundos qué tan favorable es una cabina para un incendio y qué cambio reduce más el riesgo.",
+    who2T: "Investigadores",
+    who2D: "Encuentran los experimentos más cercanos a su pregunta y los vacíos que justifican nuevos estudios.",
+    who3T: "Profesores y estudiantes",
+    who3D: "Exploran cómo el oxígeno, la presión y la gravedad cambian una llama, de forma visual y sin programar.",
+    who4T: "Seguridad contra incendios en la Tierra",
+    who4D: "La tecnología de la NASA ha mejorado los extintores de niebla de agua, la detección de humo y el equipo de bomberos.",
+    howTitle: "De la pregunta a la respuesta en tres pasos.",
+    step1T: "Define tu escenario",
+    step1D: "Elige un entorno, como la estación espacial o la base lunar, y ajusta oxígeno, presión, material, gravedad y ventilación. Las llamas y las recomendaciones cambian mientras mueves los controles.",
+    step2T: "Examina los experimentos",
+    step2D: "Un termómetro muestra qué tan favorable es tu escenario para un incendio comparado con la ISS, y cinco barras explican por qué. Debajo, las investigaciones ordenadas por relevancia, con su ficha y opción de compararlas.",
+    step3T: "Descubre los límites",
+    step3D: "La pestaña Alcance revela las condiciones sin estudiar, y el Mapa de condiciones muestra dónde está tu escenario frente a todo lo investigado.",
+    caseTitle: "Caso de uso: la cabina de un rover lunar.",
+    caseR1L: "Escenario",
+    caseR1V: "Tela, 30 % de oxígeno, 10,2 psi, gravedad lunar y ventilación suave.",
+    caseR2L: "Resultado",
+    caseR2V: "Favorabilidad mayor que la ISS (+2,8): pesan el oxígeno elevado y la gravedad lunar, que puede ampliar los límites de inflamabilidad de algunos materiales.",
+    caseR3L: "Qué cambiarías",
+    caseR3V: "Bajar el oxígeno a 21 % es el ajuste de mayor efecto.",
+    caseR4L: "Vacíos",
+    caseR4V: "Hay experimentos con tela y con 30 % de oxígeno, pero ninguno con ambos, y PSI no tiene datos en gravedad parcial.",
+    caseCta: "Probar este escenario",
+    conTitle: "Lo que aprendimos al organizar los datos.",
+    con1T: "El espacio favorece al fuego en condiciones inesperadas",
+    con1D: "Con ventilación suave, las llamas sobreviven con menos oxígeno que en la Tierra.",
+    con2T: "La futura atmósfera lunar es un punto crítico",
+    con2D: "Para la atmósfera de exploración se calculó que 31,4 % de oxígeno es el límite que no aumentaría la velocidad de combustión a 8,2 psi.",
+    con3T: "La información clave está enterrada en texto",
+    // TODO: actualizar con la cifra final de fichas con dato de oxígeno (en los cuatro idiomas)
+    con3D: "En las fichas públicas de PSI, datos como el oxígeno o la presión aparecen en párrafos narrativos y muchas veces ni siquiera se mencionan.",
+    con4T: "Falta investigar la gravedad parcial",
+    con4D: "El entorno de las próximas misiones es el que menos datos tiene; experimentos como FM2 y LUCI llenarán ese vacío.",
+    impactT: "Impacto en la Tierra",
+    impactD: "Lo que se aprende sobre el fuego en el espacio ha mejorado extintores, detección de humo y equipos de protección.",
+    visionT: "Visión futura",
+    visionD: "Integrar los datos de cada ensayo individual, incorporar resultados en gravedad lunar cuando estén disponibles y ampliar el análisis a más materiales.",
+    dataTitle: "Detrás del dashboard.",
+    procLabel: "Proceso de datos en cuatro pasos",
+    proc1T: "Descarga",
+    proc1D: "Metadatos públicos de las 24 investigaciones de combustión de NASA PSI: 19 experimentos de vuelo y 5 estudios en tierra.",
+    proc2T: "Caracterización",
+    proc2D: "Reglas y la API de Claude (Haiku 5.5) extraen combustible, oxígeno, presión, flujo y más, citando la frase original de cada dato.",
+    proc3T: "Verificación automática",
+    proc3D: "Un programa comprueba que cada frase citada aparezca en el texto original de PSI; si no coincide, el dato se descarta.",
+    proc4T: "Dashboard",
+    proc4D: "Relevancia, vacíos y favorabilidad se calculan en el navegador con reglas explicables, sin IA.",
+    sourcesT: "Fuentes",
+    sourcesD: "Base de datos NASA Physical Sciences Informatics (PSI), enunciado del reto de NASA Space Apps y publicaciones científicas de la NASA y de revistas especializadas que respaldan las reglas de favorabilidad.",
+    note: "La favorabilidad es un indicador orientativo basado en tendencias publicadas y no sustituye los ensayos de inflamabilidad de la NASA.",
+    linkCode: "Ver el código",
+    linkProcess: "Ver el proceso",
+    faqTitle: "Preguntas frecuentes",
+    faq1Q: "¿Usa inteligencia artificial?",
+    faq1A: "Solo de forma opcional para preparar los datos, y cada dato extraído se verifica contra el texto original. El dashboard calcula con reglas.",
+    faq2Q: "¿De dónde vienen los datos?",
+    faq2A: "De la base pública NASA PSI y de publicaciones científicas citadas.",
+    faq3Q: "¿Reemplaza los ensayos de materiales?",
+    faq3A: "No. Orienta y señala riesgos y vacíos, pero no certifica materiales.",
+    faq4Q: "¿Sirve fuera del espacio?",
+    faq4A: "Sí: ayuda a entender cómo el oxígeno, la presión y la ventilación afectan el fuego en cualquier entorno.",
+    closeTitle: "¿Listo para ver cómo arde tu escenario?",
+    footNavLabel: "Navegación del pie",
+    footNavTitle: "Explorar",
+    footTeam: "Equipo",
+    footDisclaimer: "Proyecto independiente que usa datos públicos de la NASA. No está afiliado ni respaldado por la NASA.",
+    ph_experimento: "Captura: pestaña Experimento",
+    ph_cobertura: "Captura: pestaña Cobertura",
+    ph_alcance: "Captura: pestaña Alcance",
+    ph_mapa: "Captura: Mapa de condiciones",
+    ph_casoRover: "Captura: pestaña Cobertura con el escenario del rover lunar",
+    ph_porQue: "Imagen opcional: llama en microgravedad",
+    alt_experimento: "Pestaña Experimento del dashboard BLUE FLAME, con los controles del escenario y las llamas",
+    alt_cobertura: "Pestaña Cobertura con el termómetro de favorabilidad, las cinco barras y la lista de investigaciones",
+    alt_alcance: "Pestaña Alcance con las condiciones que aún no se han estudiado",
+    alt_mapa: "Mapa de condiciones que ubica el escenario frente a todos los experimentos",
+    alt_casoRover: "Pestaña Cobertura con el escenario de la cabina de un rover lunar",
+    alt_porQue: "Comparación de dos llamas con 20,9 % de oxígeno: en gravedad terrestre es alta y amarilla; en microgravedad es redondeada y azul"
+  },
+
+  en: {
+    metaTitle: "BLUE FLAME — Fire safety in space",
+    metaDesc: "A dashboard that turns NASA combustion experiments into clear answers for designing safer spacecraft, stations and lunar bases.",
+    skip: "Skip to content",
+    navLabel: "Main navigation",
+    logoLabel: "BLUE FLAME, back to top",
+    menuOpen: "Open menu",
+    menuClose: "Close menu",
+    langLabel: "Language",
+    navAbout: "About",
+    navWho: "Who it’s for",
+    navHow: "How it works",
+    navConclusion: "Conclusion",
+    navData: "Data",
+    ctaDashboard: "Open the dashboard",
+    heroTitle: "Fire doesn’t behave the same way in space.",
+    heroSub: "BLUE FLAME turns decades of NASA combustion experiments into clear answers for designing safer spacecraft, stations and lunar bases.",
+    heroHow: "How it works",
+    flameAria: "Animated flame: in microgravity it is a blue sphere; on Earth it stretches into a teardrop.",
+    flameSpace: "In microgravity: a blue sphere",
+    flameEarth: "On Earth: a teardrop",
+    heroHint: "Scroll or hover over the flame.",
+    whyTitle: "A fire 400 km above Earth has no emergency exit.",
+    whyText: "The history of space exploration bears this out: the Apollo 1 crew died in a fire inside an oxygen-rich cabin; aboard the Mir station, a faulty oxygen generator started a fire; and during Artemis II a smoke alarm went off while the crew was far from home.",
+    whyCreditPrefix: "Image:",
+    why1T: "They burn on less oxygen",
+    why1D: "With little airflow, flames survive on less oxygen than on Earth: about 15% on the space station versus roughly 18% in normal gravity, according to SoFIE-MIST results.",
+    why2T: "The lunar base will be more flammable",
+    why2D: "To make moonwalks easier, the base and rovers will use 30% oxygen or more at 10.2 psi or less: over 40% more oxygen than Earth’s air.",
+    why3T: "The data exists, but it’s scattered",
+    why3D: "NASA’s PSI database publishes the experiments, but they’re hard to find, compare and interpret.",
+    aboutTitle: "What is BLUE FLAME?",
+    aboutText: "A web dashboard that brings together the 24 combustion investigations in NASA’s PSI database, describes them all with the same fields and units, and ranks them against the scenario you define: oxygen, pressure, material, gravity and ventilation.",
+    aboutSub: "What makes it different",
+    ab1T: "It compares what used to be incomparable",
+    ab1D: "Every experiment described with the same fields and units.",
+    ab2T: "It talks about real places",
+    ab2D: "Each experiment is linked to spacecraft, the ISS, lunar bases and rovers.",
+    ab3T: "It shows what’s missing",
+    ab3D: "It points out which conditions have never been studied.",
+    ab4T: "It’s transparent",
+    ab4D: "Every value shows where it came from, and the calculation uses explainable rules, with no real-time AI.",
+    whoTitle: "Built for people who design, teach and research.",
+    who1T: "Aerospace engineers and habitat designers",
+    who1D: "See in seconds how favorable a cabin is to fire and which change cuts the risk the most.",
+    who2T: "Researchers",
+    who2D: "Find the experiments closest to their question and the gaps that justify new studies.",
+    who3T: "Teachers and students",
+    who3D: "Explore how oxygen, pressure and gravity change a flame, visually and without writing code.",
+    who4T: "Fire safety on Earth",
+    who4D: "NASA technology has improved water-mist extinguishers, smoke detection and firefighting gear.",
+    howTitle: "From question to answer in three steps.",
+    step1T: "Define your scenario",
+    step1D: "Pick an environment, like the space station or the lunar base, and adjust oxygen, pressure, material, gravity and ventilation. The flames and recommendations change as you move the controls.",
+    step2T: "Examine the experiments",
+    step2D: "A thermometer shows how favorable your scenario is to fire compared with the ISS, and five bars explain why. Below, the investigations are ranked by relevance, each with its profile and the option to compare them.",
+    step3T: "Discover the limits",
+    step3D: "The Scope tab reveals conditions no one has studied, and the Conditions Map shows where your scenario sits against everything researched so far.",
+    caseTitle: "Use case: a lunar rover cabin.",
+    caseR1L: "Scenario",
+    caseR1V: "Fabric, 30% oxygen, 10.2 psi, lunar gravity and gentle ventilation.",
+    caseR2L: "Result",
+    caseR2V: "More favorable to fire than the ISS (+2.8): the high oxygen level and lunar gravity weigh the most, since partial gravity can widen the flammability limits of some materials.",
+    caseR3L: "What you’d change",
+    caseR3V: "Lowering oxygen to 21% is the most effective adjustment.",
+    caseR4L: "Gaps",
+    caseR4V: "There are experiments with fabric and with 30% oxygen, but none with both, and PSI has no partial-gravity data.",
+    caseCta: "Try this scenario",
+    conTitle: "What we learned by organizing the data.",
+    con1T: "Space favors fire under unexpected conditions",
+    con1D: "With gentle airflow, flames survive on less oxygen than on Earth.",
+    con2T: "The future lunar atmosphere is a critical point",
+    con2D: "For the exploration atmosphere, 31.4% oxygen was calculated as the limit that would not increase the burning rate at 8.2 psi.",
+    con3T: "Key information is buried in text",
+    con3D: "In PSI’s public records, values such as oxygen or pressure appear inside narrative paragraphs, and often they aren’t mentioned at all.",
+    con4T: "Partial gravity needs more research",
+    con4D: "The environment of the next missions is the one with the least data; experiments such as FM2 and LUCI will fill that gap.",
+    impactT: "Impact on Earth",
+    impactD: "What we learn about fire in space has improved extinguishers, smoke detection and protective equipment.",
+    visionT: "Looking ahead",
+    visionD: "Integrate data from every individual test, add lunar-gravity results as they become available and extend the analysis to more materials.",
+    dataTitle: "Behind the dashboard.",
+    procLabel: "Four-step data process",
+    proc1T: "Download",
+    proc1D: "Public metadata for NASA PSI’s 24 combustion investigations: 19 flight experiments and 5 ground-based studies.",
+    proc2T: "Characterization",
+    proc2D: "Rules and the Claude API (Haiku 5.5) extract fuel, oxygen, pressure, flow and more, quoting the original sentence behind each value.",
+    proc3T: "Automatic verification",
+    proc3D: "A script checks that every quoted sentence appears in the original PSI text; if it doesn’t match, the value is discarded.",
+    proc4T: "Dashboard",
+    proc4D: "Relevance, gaps and favorability are calculated in the browser with explainable rules, no AI.",
+    sourcesT: "Sources",
+    sourcesD: "The NASA Physical Sciences Informatics (PSI) database, the NASA Space Apps challenge statement, and scientific publications from NASA and peer-reviewed journals that support the favorability rules.",
+    note: "Favorability is an indicative measure based on published trends and does not replace NASA flammability testing.",
+    linkCode: "View the code",
+    linkProcess: "View the process",
+    faqTitle: "Frequently asked questions",
+    faq1Q: "Does it use artificial intelligence?",
+    faq1A: "Only optionally, to prepare the data, and every extracted value is checked against the original text. The dashboard calculates with rules.",
+    faq2Q: "Where does the data come from?",
+    faq2A: "From NASA’s public PSI database and cited scientific publications.",
+    faq3Q: "Does it replace materials testing?",
+    faq3A: "No. It guides you and flags risks and gaps, but it doesn’t certify materials.",
+    faq4Q: "Is it useful outside space?",
+    faq4A: "Yes: it helps you understand how oxygen, pressure and ventilation affect fire in any environment.",
+    closeTitle: "Ready to see how your scenario burns?",
+    footNavLabel: "Footer navigation",
+    footNavTitle: "Explore",
+    footTeam: "Team",
+    footDisclaimer: "Independent project using public NASA data. Not affiliated with or endorsed by NASA.",
+    ph_experimento: "Screenshot: Experiment tab",
+    ph_cobertura: "Screenshot: Coverage tab",
+    ph_alcance: "Screenshot: Scope tab",
+    ph_mapa: "Screenshot: Conditions Map",
+    ph_casoRover: "Screenshot: Coverage tab with the lunar rover scenario",
+    ph_porQue: "Optional image: flame in microgravity",
+    alt_experimento: "BLUE FLAME dashboard Experiment tab, with the scenario controls and flames",
+    alt_cobertura: "Coverage tab with the favorability thermometer, five bars and the list of investigations",
+    alt_alcance: "Scope tab showing conditions that haven’t been studied yet",
+    alt_mapa: "Conditions Map placing the scenario against every experiment",
+    alt_casoRover: "Coverage tab showing the lunar rover cabin scenario",
+    alt_porQue: "Two flames at 20.9% oxygen: in Earth gravity it is tall and yellow; in microgravity it is rounded and blue"
+  },
+
+  zh: {
+    metaTitle: "BLUE FLAME — 太空防火安全",
+    metaDesc: "BLUE FLAME 将 NASA 的燃烧实验转化为清晰的答案，助力设计更安全的飞船、空间站和月球基地。",
+    skip: "跳到主要内容",
+    navLabel: "主导航",
+    logoLabel: "BLUE FLAME，返回顶部",
+    menuOpen: "打开菜单",
+    menuClose: "关闭菜单",
+    langLabel: "语言",
+    navAbout: "项目简介",
+    navWho: "适用人群",
+    navHow: "使用方式",
+    navConclusion: "结论",
+    navData: "数据",
+    ctaDashboard: "打开仪表板",
+    heroTitle: "在太空中，火焰的表现与地球上截然不同。",
+    heroSub: "BLUE FLAME 将 NASA 数十年的燃烧实验转化为清晰的答案，助力设计更安全的飞船、空间站和月球基地。",
+    heroHow: "使用方式",
+    flameAria: "火焰动画：在微重力下是一个蓝色球体，在地球上则拉长成泪滴形。",
+    flameSpace: "微重力下：蓝色球体",
+    flameEarth: "地球上：泪滴形",
+    heroHint: "滚动页面或将光标移到火焰上。",
+    whyTitle: "距地球 400 公里的火灾，没有紧急出口。",
+    whyText: "太空探索的历史一再证明了这一点：Apollo 1 号的乘组在充满氧气的舱内火灾中遇难；Mir 空间站的一台制氧机故障引发了火灾；Artemis II 任务期间，乘组远离地球时烟雾警报响起。",
+    whyCreditPrefix: "图片：",
+    why1T: "氧气更少也能燃烧",
+    why1D: "通风较弱时，火焰在比地球上更低的氧气浓度下仍能维持：根据 SoFIE-MIST 的结果，空间站中约为 15%，而正常重力下约为 18%。",
+    why2T: "月球基地将更易燃",
+    why2D: "为方便月面行走，基地和月球车将采用不低于 30% 的氧气浓度和不高于 10.2 psi 的压力：氧气比地球大气高出 40% 以上。",
+    why3T: "数据都在，却很分散",
+    why3D: "NASA 的 PSI 数据库公开了这些实验，但它们难以查找、比较和解读。",
+    aboutTitle: "BLUE FLAME 是什么？",
+    aboutText: "一个网页仪表板，汇集 NASA PSI 数据库中的 24 项燃烧研究，用统一的字段和单位加以描述，并根据你设定的场景排序：氧气、压力、材料、重力和通风。",
+    aboutSub: "它的不同之处",
+    ab1T: "让原本无法比较的数据可以比较",
+    ab1D: "每项实验都用相同的字段和单位描述。",
+    ab2T: "联系真实场景",
+    ab2D: "把每项实验与飞船、ISS、月球基地和月球车联系起来。",
+    ab3T: "指出空白",
+    ab3D: "标出哪些条件从未被研究过。",
+    ab4T: "公开透明",
+    ab4D: "每个数据都注明来源，计算采用可解释的规则，不使用实时 AI。",
+    whoTitle: "为设计者、教育者和研究者打造。",
+    who1T: "航天工程师和栖息地设计师",
+    who1D: "几秒钟内评估舱室对火灾有多有利，以及哪项改动最能降低风险。",
+    who2T: "研究人员",
+    who2D: "找到与研究问题最接近的实验，以及值得开展新研究的空白。",
+    who3T: "教师和学生",
+    who3D: "以可视化方式、无需编程，探索氧气、压力和重力如何改变火焰。",
+    who4T: "地球上的消防安全",
+    who4D: "NASA 的技术改进了细水雾灭火器、烟雾探测和消防装备。",
+    howTitle: "三步，从问题到答案。",
+    step1T: "设定场景",
+    step1D: "选择一种环境，例如空间站或月球基地，然后调整氧气、压力、材料、重力和通风。拖动控件时，火焰和建议会随之变化。",
+    step2T: "查看实验",
+    step2D: "温度计显示与 ISS 相比，你的场景对火灾有多有利，五个条形图解释原因。下方按相关性列出各项研究，附有详情卡片，并可相互比较。",
+    step3T: "发现边界",
+    step3D: "“范围”标签页揭示尚未研究的条件，“条件图”则显示你的场景相对于所有已有研究的位置。",
+    caseTitle: "应用案例：月球车舱室。",
+    caseR1L: "场景",
+    caseR1V: "织物、30% 氧气、10.2 psi、月球重力、轻微通风。",
+    caseR2L: "结果",
+    caseR2V: "有利程度高于 ISS（+2.8）：高氧浓度和月球重力影响最大，部分重力可能会扩大某些材料的可燃极限。",
+    caseR3L: "可以改什么",
+    caseR3V: "将氧气降至 21% 是效果最显著的调整。",
+    caseR4L: "空白",
+    caseR4V: "已有使用织物的实验，也有 30% 氧气的实验，但没有两者兼具的；而且 PSI 没有部分重力数据。",
+    caseCta: "试试这个场景",
+    conTitle: "整理数据后，我们学到了什么。",
+    con1T: "太空会在意想不到的条件下助长火势",
+    con1D: "通风轻微时，火焰在比地球上更低的氧气浓度下仍能存活。",
+    con2T: "未来的月球大气是关键节点",
+    con2D: "对于探索大气，计算得出在 8.2 psi 下不会提高燃烧速率的氧气上限为 31.4%。",
+    con3T: "关键信息埋藏在文字中",
+    con3D: "在 PSI 的公开记录中，氧气或压力等数据出现在叙述性段落里，而且常常根本没有提及。",
+    con4T: "部分重力亟待研究",
+    con4D: "未来任务所处的环境数据最少；FM2 和 LUCI 等实验将填补这一空白。",
+    impactT: "对地球的影响",
+    impactD: "对太空火焰的研究成果，已经改进了灭火器、烟雾探测和防护装备。",
+    visionT: "未来展望",
+    visionD: "整合每次单独试验的数据，在月球重力结果可用时纳入分析，并将分析扩展到更多材料。",
+    dataTitle: "仪表板背后。",
+    procLabel: "四步数据流程",
+    proc1T: "下载",
+    proc1D: "NASA PSI 中 24 项燃烧研究的公开元数据：19 项飞行实验和 5 项地面研究。",
+    proc2T: "特征提取",
+    proc2D: "通过规则和 Claude API（Haiku 5.5）提取燃料、氧气、压力、气流等信息，并为每个数据引用原文中的依据句。",
+    proc3T: "自动核验",
+    proc3D: "程序检查每个引用的句子是否确实出现在 PSI 原文中；不一致的数据会被舍弃。",
+    proc4T: "仪表板",
+    proc4D: "相关性、空白和有利程度均在浏览器中按可解释的规则计算，不使用 AI。",
+    sourcesT: "数据来源",
+    sourcesD: "NASA Physical Sciences Informatics（PSI）数据库、NASA Space Apps 挑战赛题目说明，以及支撑有利程度规则的 NASA 科学出版物和专业期刊论文。",
+    note: "有利程度是基于已发表趋势的参考指标，不能替代 NASA 的可燃性试验。",
+    linkCode: "查看代码",
+    linkProcess: "查看流程",
+    faqTitle: "常见问题",
+    faq1Q: "它使用人工智能吗？",
+    faq1A: "仅在准备数据时可选使用，且每个提取的数据都会与原文核对。仪表板本身按规则计算。",
+    faq2Q: "数据从哪里来？",
+    faq2A: "来自公开的 NASA PSI 数据库和所引用的科学出版物。",
+    faq3Q: "它能取代材料试验吗？",
+    faq3A: "不能。它提供参考、提示风险和空白，但不对材料进行认证。",
+    faq4Q: "在太空以外也有用吗？",
+    faq4A: "有用：它能帮助理解氧气、压力和通风如何在任何环境中影响火焰。",
+    closeTitle: "准备好看看你的场景会如何燃烧了吗？",
+    footNavLabel: "页脚导航",
+    footNavTitle: "浏览",
+    footTeam: "团队",
+    footDisclaimer: "本项目为独立项目，使用 NASA 公开数据，与 NASA 无隶属关系，也未获得 NASA 认可。",
+    ph_experimento: "截图：“实验”标签页",
+    ph_cobertura: "截图：“覆盖”标签页",
+    ph_alcance: "截图：“范围”标签页",
+    ph_mapa: "截图：条件图",
+    ph_casoRover: "截图：“覆盖”标签页中的月球车场景",
+    ph_porQue: "可选图片：微重力下的火焰",
+    alt_experimento: "BLUE FLAME 仪表板的“实验”标签页，显示场景控件和火焰",
+    alt_cobertura: "“覆盖”标签页，显示有利程度温度计、五个条形图和研究列表",
+    alt_alcance: "“范围”标签页，显示尚未研究的条件",
+    alt_mapa: "条件图，显示场景相对于所有实验的位置",
+    alt_casoRover: "“覆盖”标签页中的月球车舱室场景",
+    alt_porQue: "同为 20.9% 氧气的两团火焰：地球重力下细长发黄，微重力下圆润发蓝"
+  },
+
+  pt: {
+    metaTitle: "BLUE FLAME — Segurança contra incêndios no espaço",
+    metaDesc: "Dashboard que transforma os experimentos de combustão da NASA em respostas claras para projetar naves, estações e bases lunares mais seguras.",
+    skip: "Pular para o conteúdo",
+    navLabel: "Navegação principal",
+    logoLabel: "BLUE FLAME, voltar ao início",
+    menuOpen: "Abrir menu",
+    menuClose: "Fechar menu",
+    langLabel: "Idioma",
+    navAbout: "Sobre",
+    navWho: "Para quem",
+    navHow: "Como funciona",
+    navConclusion: "Conclusão",
+    navData: "Dados",
+    ctaDashboard: "Abrir o dashboard",
+    heroTitle: "O fogo não se comporta da mesma forma no espaço.",
+    heroSub: "BLUE FLAME transforma décadas de experimentos de combustão da NASA em respostas claras para projetar naves, estações e bases lunares mais seguras.",
+    heroHow: "Como funciona",
+    flameAria: "Animação de uma chama: em microgravidade é uma esfera azul; na Terra, ela se alonga em forma de gota.",
+    flameSpace: "Em microgravidade: uma esfera azul",
+    flameEarth: "Na Terra: uma gota",
+    heroHint: "Role a página ou passe o cursor sobre a chama.",
+    whyTitle: "Um incêndio a 400 km da Terra não tem saída de emergência.",
+    whyText: "A história da exploração espacial confirma isso: a tripulação da Apollo 1 morreu em um incêndio numa cabine cheia de oxigênio; na estação Mir, uma falha em um gerador de oxigênio provocou um incêndio; e durante a Artemis II um alarme de fumaça disparou com a tripulação longe de casa.",
+    whyCreditPrefix: "Imagem:",
+    why1T: "Queimam com menos oxigênio",
+    why1D: "Com pouca ventilação, as chamas sobrevivem com menos oxigênio do que na Terra: cerca de 15% na estação espacial contra cerca de 18% na gravidade normal, segundo os resultados do SoFIE-MIST.",
+    why2T: "A base lunar será mais inflamável",
+    why2D: "Para facilitar as caminhadas lunares, a base e os rovers usarão 30% de oxigênio ou mais a 10,2 psi ou menos: mais de 40% acima do oxigênio da Terra.",
+    why3T: "Os dados existem, mas estão dispersos",
+    why3D: "A base PSI da NASA publica os experimentos, mas eles são difíceis de encontrar, comparar e interpretar.",
+    aboutTitle: "O que é o BLUE FLAME?",
+    aboutText: "Um dashboard web que reúne as 24 investigações de combustão da base de dados PSI da NASA, descreve todas com os mesmos campos e unidades e as ordena de acordo com o cenário que você definir: oxigênio, pressão, material, gravidade e ventilação.",
+    aboutSub: "O que o torna diferente",
+    ab1T: "Compara o que antes era incomparável",
+    ab1D: "Cada experimento descrito com os mesmos campos e unidades.",
+    ab2T: "Fala de lugares reais",
+    ab2D: "Conecta cada experimento a naves, à ISS, a bases lunares e a rovers.",
+    ab3T: "Mostra o que falta",
+    ab3D: "Indica quais condições nunca foram estudadas.",
+    ab4T: "É transparente",
+    ab4D: "Cada dado mostra de onde veio, e o cálculo usa regras explicáveis, sem IA em tempo real.",
+    whoTitle: "Feito para quem projeta, ensina e pesquisa.",
+    who1T: "Engenheiros aeroespaciais e projetistas de habitats",
+    who1D: "Avaliam em segundos o quanto uma cabine favorece um incêndio e qual mudança reduz mais o risco.",
+    who2T: "Pesquisadores",
+    who2D: "Encontram os experimentos mais próximos da sua pergunta e as lacunas que justificam novos estudos.",
+    who3T: "Professores e estudantes",
+    who3D: "Exploram como o oxigênio, a pressão e a gravidade mudam uma chama, de forma visual e sem programar.",
+    who4T: "Segurança contra incêndios na Terra",
+    who4D: "A tecnologia da NASA aprimorou os extintores de névoa d’água, a detecção de fumaça e os equipamentos dos bombeiros.",
+    howTitle: "Da pergunta à resposta em três passos.",
+    step1T: "Defina seu cenário",
+    step1D: "Escolha um ambiente, como a estação espacial ou a base lunar, e ajuste oxigênio, pressão, material, gravidade e ventilação. As chamas e as recomendações mudam enquanto você move os controles.",
+    step2T: "Examine os experimentos",
+    step2D: "Um termômetro mostra o quanto seu cenário favorece um incêndio em comparação com a ISS, e cinco barras explicam por quê. Abaixo, as investigações ordenadas por relevância, com sua ficha e a opção de compará-las.",
+    step3T: "Descubra os limites",
+    step3D: "A aba Alcance revela as condições ainda não estudadas, e o Mapa de condições mostra onde seu cenário está em relação a tudo o que já foi pesquisado.",
+    caseTitle: "Caso de uso: a cabine de um rover lunar.",
+    caseR1L: "Cenário",
+    caseR1V: "Tecido, 30% de oxigênio, 10,2 psi, gravidade lunar e ventilação suave.",
+    caseR2L: "Resultado",
+    caseR2V: "Favorabilidade maior que a da ISS (+2,8): pesam o oxigênio elevado e a gravidade lunar, que pode ampliar os limites de inflamabilidade de alguns materiais.",
+    caseR3L: "O que você mudaria",
+    caseR3V: "Reduzir o oxigênio para 21% é o ajuste de maior efeito.",
+    caseR4L: "Lacunas",
+    caseR4V: "Há experimentos com tecido e com 30% de oxigênio, mas nenhum com os dois, e o PSI não tem dados em gravidade parcial.",
+    caseCta: "Testar este cenário",
+    conTitle: "O que aprendemos ao organizar os dados.",
+    con1T: "O espaço favorece o fogo em condições inesperadas",
+    con1D: "Com ventilação suave, as chamas sobrevivem com menos oxigênio do que na Terra.",
+    con2T: "A futura atmosfera lunar é um ponto crítico",
+    con2D: "Para a atmosfera de exploração, calculou-se que 31,4% de oxigênio é o limite que não aumentaria a velocidade de combustão a 8,2 psi.",
+    con3T: "A informação-chave está enterrada no texto",
+    con3D: "Nas fichas públicas do PSI, dados como oxigênio ou pressão aparecem em parágrafos narrativos e muitas vezes nem são mencionados.",
+    con4T: "Falta pesquisar a gravidade parcial",
+    con4D: "O ambiente das próximas missões é o que tem menos dados; experimentos como FM2 e LUCI vão preencher essa lacuna.",
+    impactT: "Impacto na Terra",
+    impactD: "O que se aprende sobre o fogo no espaço aprimorou extintores, detecção de fumaça e equipamentos de proteção.",
+    visionT: "Visão de futuro",
+    visionD: "Integrar os dados de cada ensaio individual, incorporar resultados em gravidade lunar quando estiverem disponíveis e ampliar a análise para mais materiais.",
+    dataTitle: "Por trás do dashboard.",
+    procLabel: "Processo de dados em quatro etapas",
+    proc1T: "Download",
+    proc1D: "Metadados públicos das 24 investigações de combustão do NASA PSI: 19 experimentos de voo e 5 estudos em solo.",
+    proc2T: "Caracterização",
+    proc2D: "Regras e a API do Claude (Haiku 5.5) extraem combustível, oxigênio, pressão, fluxo e mais, citando a frase original de cada dado.",
+    proc3T: "Verificação automática",
+    proc3D: "Um programa confere se cada frase citada aparece no texto original do PSI; se não coincidir, o dado é descartado.",
+    proc4T: "Dashboard",
+    proc4D: "Relevância, lacunas e favorabilidade são calculadas no navegador com regras explicáveis, sem IA.",
+    sourcesT: "Fontes",
+    sourcesD: "Base de dados NASA Physical Sciences Informatics (PSI), enunciado do desafio NASA Space Apps e publicações científicas da NASA e de revistas especializadas que fundamentam as regras de favorabilidade.",
+    note: "A favorabilidade é um indicador orientativo baseado em tendências publicadas e não substitui os ensaios de inflamabilidade da NASA.",
+    linkCode: "Ver o código",
+    linkProcess: "Ver o processo",
+    faqTitle: "Perguntas frequentes",
+    faq1Q: "Usa inteligência artificial?",
+    faq1A: "Apenas de forma opcional, para preparar os dados, e cada dado extraído é conferido com o texto original. O dashboard calcula com regras.",
+    faq2Q: "De onde vêm os dados?",
+    faq2A: "Da base pública NASA PSI e de publicações científicas citadas.",
+    faq3Q: "Substitui os ensaios de materiais?",
+    faq3A: "Não. Orienta e aponta riscos e lacunas, mas não certifica materiais.",
+    faq4Q: "Serve fora do espaço?",
+    faq4A: "Sim: ajuda a entender como o oxigênio, a pressão e a ventilação afetam o fogo em qualquer ambiente.",
+    closeTitle: "Pronto para ver como seu cenário queima?",
+    footNavLabel: "Navegação do rodapé",
+    footNavTitle: "Explorar",
+    footTeam: "Equipe",
+    footDisclaimer: "Projeto independente que usa dados públicos da NASA. Não é afiliado nem endossado pela NASA.",
+    ph_experimento: "Captura: aba Experimento",
+    ph_cobertura: "Captura: aba Cobertura",
+    ph_alcance: "Captura: aba Alcance",
+    ph_mapa: "Captura: Mapa de condições",
+    ph_casoRover: "Captura: aba Cobertura com o cenário do rover lunar",
+    ph_porQue: "Imagem opcional: chama em microgravidade",
+    alt_experimento: "Aba Experimento do dashboard BLUE FLAME, com os controles do cenário e as chamas",
+    alt_cobertura: "Aba Cobertura com o termômetro de favorabilidade, as cinco barras e a lista de investigações",
+    alt_alcance: "Aba Alcance mostrando as condições ainda não estudadas",
+    alt_mapa: "Mapa de condições que situa o cenário em relação a todos os experimentos",
+    alt_casoRover: "Aba Cobertura com o cenário da cabine de um rover lunar",
+    alt_porQue: "Duas chamas com 20,9% de oxigênio: na gravidade terrestre é alta e amarela; em microgravidade é arredondada e azul"
+  }
+};
+
+/* =====================================================================
+   A partir de aquí no hace falta tocar nada
+   ===================================================================== */
+(function () {
+  "use strict";
+
+  const IDIOMAS = ["es", "en", "zh", "pt"];
+  const HTML_LANG = { es: "es", en: "en", zh: "zh-Hans", pt: "pt-BR" };
+  const STORAGE_KEY = "blueflame-idioma";
+  let idioma = "en";
+  const $ = (s, root) => (root || document).querySelector(s);
+  const $$ = (s, root) => Array.from((root || document).querySelectorAll(s));
+
+  // Comprobación silenciosa: avisa en consola solo si algún idioma tiene claves distintas
+  const base = Object.keys(TEXTOS.es).sort().join("|");
+  IDIOMAS.forEach(l => {
+    if (Object.keys(TEXTOS[l] || {}).sort().join("|") !== base) console.warn("TEXTOS." + l + " no tiene las mismas claves que TEXTOS.es");
+  });
+
+  function t(clave) {
+    const dic = TEXTOS[idioma] || TEXTOS.es;
+    return dic[clave] != null ? dic[clave] : (TEXTOS.es[clave] || "");
+  }
+
+  /* ---------- Idioma ---------- */
+  function leerIdiomaGuardado() {
+    try { const v = localStorage.getItem(STORAGE_KEY); return IDIOMAS.includes(v) ? v : null; }
+    catch (e) { return null; }
+  }
+  function guardarIdioma(l) {
+    try { localStorage.setItem(STORAGE_KEY, l); } catch (e) { /* sin almacenamiento: se usa el idioma actual */ }
+  }
+  function idiomaPorDefecto() {
+    return IDIOMAS.includes(CONFIG.idiomaPorDefecto) ? CONFIG.idiomaPorDefecto : "en";
+  }
+  function detectarIdioma() {
+    if (!CONFIG.detectarIdiomaNavegador) return idiomaPorDefecto();
+    const lista = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || "es"];
+    for (const l of lista) {
+      const c = String(l || "").toLowerCase();
+      if (c.startsWith("es")) return "es";
+      if (c.startsWith("en")) return "en";
+      if (c.startsWith("zh")) return "zh";
+      if (c.startsWith("pt")) return "pt";
+    }
+    return idiomaPorDefecto();
+  }
+  function ensureZhFont() {
+    if (document.getElementById("font-zh")) return;
+    const link = document.createElement("link");
+    link.id = "font-zh";
+    link.rel = "stylesheet";
+    link.href = "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap";
+    document.head.appendChild(link);
+  }
+  function setMeta(selector, valor) {
+    const m = $(selector);
+    if (m) m.setAttribute("content", valor);
+  }
+
+  function aplicarIdioma(l, guardar) {
+    idioma = IDIOMAS.includes(l) ? l : idiomaPorDefecto();
+    if (idioma === "zh") ensureZhFont();
+    document.documentElement.lang = HTML_LANG[idioma];
+    document.title = t("metaTitle");
+    setMeta('meta[name="description"]', t("metaDesc"));
+    setMeta('meta[property="og:title"]', t("metaTitle"));
+    setMeta('meta[property="og:description"]', t("metaDesc"));
+
+    $$("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+    $$("[data-i18n-aria]").forEach(el => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
+    $$(".lang button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === idioma)));
+
+    const menuBtn = $(".menu-btn");
+    if (menuBtn) menuBtn.setAttribute("aria-label", t(menuBtn.getAttribute("aria-expanded") === "true" ? "menuClose" : "menuOpen"));
+
+    renderImagenes();
+    if (guardar) guardarIdioma(idioma);
+  }
+
+  /* ---------- Imágenes reemplazables ---------- */
+  const ICONO_CAPTURA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4" width="19" height="14" rx="2"/><path d="M2.5 8h19M6 21h12"/><circle cx="5" cy="6" r=".4"/><circle cx="6.8" cy="6" r=".4"/></svg>';
+  const ICONO_IMAGEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1.2"/></svg>';
+
+  function renderImagenes() {
+    $$("[data-slot]").forEach(fig => {
+      const slot = fig.dataset.slot;
+      const ratio = (fig.dataset.ratio || "16/10").replace("/", " / ");
+      const ruta = (CONFIG.imagenes && CONFIG.imagenes[slot]) || "";
+      fig.textContent = "";
+
+      if (ruta) {
+        const marco = document.createElement("div");
+        marco.className = "browser";
+        marco.innerHTML = '<div class="browser-bar" aria-hidden="true"><span></span><span></span><span></span></div>';
+        const img = document.createElement("img");
+        img.src = ruta;
+        img.alt = t("alt_" + slot);
+        img.loading = "lazy";
+        img.decoding = "async";
+        // sin aspect-ratio forzado: la captura conserva su proporción y no se recorta
+        // Clic en la captura: se abre a tamaño completo en otra pestaña
+        const enlace = document.createElement("a");
+        enlace.href = ruta;
+        enlace.target = "_blank";
+        enlace.rel = "noopener";
+        enlace.appendChild(img);
+        marco.appendChild(enlace);
+        fig.appendChild(marco);
+        if (slot === "porQue" && CONFIG.creditoPorQue) {
+          const cap = document.createElement("figcaption");
+          cap.textContent = t("whyCreditPrefix") + " " + CONFIG.creditoPorQue;
+          fig.appendChild(cap);
+        }
+      } else {
+        const etiqueta = t("ph_" + slot) + " · " + (fig.dataset.size || "");
+        const ph = document.createElement("div");
+        ph.className = "ph";
+        ph.style.aspectRatio = ratio;
+        ph.setAttribute("role", "img");
+        ph.setAttribute("aria-label", etiqueta);
+        ph.innerHTML = slot === "porQue" ? ICONO_IMAGEN : ICONO_CAPTURA;
+        const span = document.createElement("span");
+        span.className = "ph-label";
+        span.setAttribute("aria-hidden", "true");
+        span.textContent = etiqueta;
+        ph.appendChild(span);
+        fig.appendChild(ph);
+      }
+    });
+  }
+
+  /* ---------- Enlaces, equipo y og:image ---------- */
+  function configurarEnlaces() {
+    const mapa = { dashboard: CONFIG.urlDashboard, repo: CONFIG.urlRepositorio, proceso: CONFIG.urlProceso };
+    $$("[data-link]").forEach(a => {
+      const url = mapa[a.dataset.link] || "#";
+      a.setAttribute("href", url);
+      if (a.dataset.link === "proceso" && (!url || url === "#")) a.hidden = true;
+      // Dashboard, código y proceso se abren en otra pestaña (la landing queda abierta)
+      if (url && url !== "#") {
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+      }
+    });
+    const lista = $("#teamList");
+    if (lista) {
+      lista.textContent = "";
+      (CONFIG.equipo || []).forEach(nombre => {
+        const li = document.createElement("li");
+        li.textContent = nombre;
+        lista.appendChild(li);
+      });
+    }
+    if (CONFIG.imagenes && CONFIG.imagenes.og) setMeta('meta[property="og:image"]', CONFIG.imagenes.og);
+  }
+
+  /* ---------- Menú móvil ---------- */
+  function configurarMenu() {
+    const btn = $(".menu-btn");
+    const panel = $("#nav-panel");
+    if (!btn || !panel) return;
+    const abrir = (si) => {
+      btn.setAttribute("aria-expanded", String(si));
+      btn.setAttribute("aria-label", t(si ? "menuClose" : "menuOpen"));
+      panel.classList.toggle("is-open", si);
+    };
+    btn.addEventListener("click", () => abrir(btn.getAttribute("aria-expanded") !== "true"));
+    panel.addEventListener("click", e => { if (e.target.closest("a")) abrir(false); });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape" && btn.getAttribute("aria-expanded") === "true") { abrir(false); btn.focus(); }
+    });
+    window.matchMedia("(min-width: 1121px)").addEventListener("change", e => { if (e.matches) abrir(false); });
+  }
+
+  /* ---------- Selector de idioma ---------- */
+  function configurarIdiomas() {
+    $$(".lang button").forEach(b => b.addEventListener("click", () => aplicarIdioma(b.dataset.lang, true)));
+  }
+
+  /* ---------- Aparición al entrar en pantalla ---------- */
+  function configurarApariciones() {
+    const els = $$(".reveal");
+    if (!("IntersectionObserver" in window)) { els.forEach(el => el.classList.add("is-in")); return; }
+    const io = new IntersectionObserver(entradas => {
+      entradas.forEach(en => {
+        if (en.isIntersecting) { en.target.classList.add("is-in"); io.unobserve(en.target); }
+      });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.12 });
+    els.forEach(el => io.observe(el));
+  }
+
+  /* ---------- La llama: esfera (espacio) → lágrima (Tierra) ---------- */
+  function configurarLlama() {
+    const stage = $("#flameStage");
+    if (!stage) return;
+    const body = $("#flameBody"), warm = $("#flameWarm"), core = $("#flameCore");
+    const haloBlue = $("#haloBlue"), haloWarm = $("#haloWarm");
+    const hero = $("#inicio");
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    // Mismos 4 segmentos Bézier en ambas formas para poder interpolar punto a punto
+    const ESFERA = [200,130, 249.7,130, 290,170.3, 290,220, 290,269.7, 249.7,310, 200,310, 150.3,310, 110,269.7, 110,220, 110,170.3, 150.3,130, 200,130];
+    const LAGRIMA = [200,38, 213,96, 262,166, 262,238, 262,283, 235,312, 200,312, 165,312, 138,283, 138,238, 138,166, 187,96, 200,38];
+
+    const ruta = (p) => {
+      const v = ESFERA.map((a, i) => (a + (LAGRIMA[i] - a) * p).toFixed(1));
+      let d = "M" + v[0] + " " + v[1];
+      for (let i = 2; i < v.length; i += 6) d += "C" + v.slice(i, i + 6).join(" ");
+      return d + "Z";
+    };
+    const suave = (x) => x * x * (3 - 2 * x);
+
+    function dibujar(p) {
+      const e = suave(p);
+      const d = ruta(e);
+      body.setAttribute("d", d);
+      warm.setAttribute("d", d);
+      core.setAttribute("d", d);
+      body.setAttribute("opacity", (1 - 0.5 * e).toFixed(3));
+      warm.setAttribute("opacity", e.toFixed(3));
+      haloBlue.setAttribute("opacity", (1 - 0.7 * e).toFixed(3));
+      haloWarm.setAttribute("opacity", (0.9 * e).toFixed(3));
+      stage.classList.toggle("is-earth", e > 0.5);
+    }
+
+    const hint = $("#flameHint");
+    if (reduce.matches) { dibujar(0); if (hint) hint.hidden = true; return; }
+
+    let actual = 0, objetivo = 0, scrollP = 0, hover = false, raf = null;
+    function paso() {
+      actual += (objetivo - actual) * 0.08;
+      if (Math.abs(objetivo - actual) < 0.001) actual = objetivo;
+      dibujar(actual);
+      raf = actual !== objetivo ? requestAnimationFrame(paso) : null;
+    }
+    function actualizar() {
+      objetivo = Math.max(scrollP, hover ? 1 : 0);
+      if (!raf) raf = requestAnimationFrame(paso);
+    }
+    function leerScroll() {
+      const r = hero.getBoundingClientRect();
+      scrollP = Math.min(1, Math.max(0, -r.top / (r.height * 0.28)));
+      actualizar();
+    }
+    stage.addEventListener("pointerenter", () => { hover = true; actualizar(); });
+    stage.addEventListener("pointerleave", () => { hover = false; actualizar(); });
+    window.addEventListener("scroll", leerScroll, { passive: true });
+    reduce.addEventListener("change", e => { if (e.matches) { hover = false; scrollP = 0; actual = objetivo = 0; dibujar(0); } });
+    leerScroll();
+  }
+
+  /* ---------- Inicio ---------- */
+  configurarEnlaces();
+  configurarMenu();
+  configurarIdiomas();
+  aplicarIdioma(leerIdiomaGuardado() || detectarIdioma(), false);
+  configurarApariciones();
+  configurarLlama();
+})();
+</script>
+
+<!--
+=======================================================================
+CAPTURAS QUE FALTAN (ponlas en una carpeta, p. ej. img/, y escribe la ruta en CONFIG.imagenes)
+=======================================================================
+  experimento  Pestaña Experimento con controles y llamas ............ 1600 × 1000 px (16:10)
+  cobertura    Pestaña Cobertura: termómetro, 5 barras y lista ........ 1600 × 1000 px (16:10)
+  alcance      Pestaña Alcance con las condiciones sin estudiar ....... 1600 × 1000 px (16:10)
+  mapa         Mapa de condiciones con un escenario marcado ........... 1600 × 1000 px (16:10)
+  casoRover    Pestaña Cobertura con: tela, 30 % O2, 10,2 psi,
+               gravedad lunar, ventilación suave ...................... 1600 × 1000 px (16:10)
+  porQue       (Opcional) llama en microgravedad, con crédito ......... 1200 × 900 px (4:3)
+               → cambia CONFIG.creditoPorQue por la fuente real
+  og           Imagen para redes sociales ............................. 1200 × 630 px
+               → escribe también su URL absoluta en <meta property="og:image">
+
+Consejos: captura a 2× (3200 × 2000) y exporta en WebP o JPG de calidad 80;
+recorta sin la barra del navegador real (la página ya dibuja un marco de ventana).
+=======================================================================
+-->
+</body>
+</html>

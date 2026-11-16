@@ -1,0 +1,14 @@
+services:
+  psi:
+    build: .
+    image: psi-combustion
+    volumes:
+      - ./datos:/datos
+      - ./web:/app/web
+    environment:
+      - WEB_DIR=/app/web
+    ports:
+      - "8080:8080"
+    env_file:
+      - path: .env
+        required: false

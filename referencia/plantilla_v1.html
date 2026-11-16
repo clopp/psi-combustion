@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Evaluador de escenarios de incendio · NASA PSI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+  --fondo: #EBEFF2;
+  --superficie: #FFFFFF;
+  --superficie-2: #F5F7F9;
+  --tinta: #1F1426;
+  --tenue: #5F5668;
+  --linea: #D5DBE1;
+  --llama: #D1117A;
+  --llama-suave: rgba(209, 17, 122, 0.09);
+  --llama-media: rgba(209, 17, 122, 0.28);
+  --morado: #580C78;
+  --morado-suave: rgba(88, 12, 120, 0.09);
+  --morado-medio: rgba(88, 12, 120, 0.22);
+  --hollin: #580C78;
+  --hollin-suave: rgba(88, 12, 120, 0.09);
+  --verificado: #1F7A4D;
+  --verificado-suave: rgba(31, 122, 77, 0.12);
+  --sobre-llama: #FFFFFF;
+  --sombra: 0 1px 2px rgba(31, 20, 38, 0.05), 0 6px 20px rgba(31, 20, 38, 0.05);
+  --fuente: "Public Sans", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --fondo: #140C19; --superficie: #1E1325; --superficie-2: #27192F;
+    --tinta: #EEE6F2; --tenue: #AB9DB5; --linea: #3A2946;
+    --llama: #F2559F; --llama-suave: rgba(242, 85, 159, 0.12); --llama-media: rgba(242, 85, 159, 0.34);
+    --morado: #C38BE3; --morado-suave: rgba(195, 139, 227, 0.12); --morado-medio: rgba(195, 139, 227, 0.26);
+    --hollin: #C38BE3; --hollin-suave: rgba(195, 139, 227, 0.12);
+    --verificado: #4CC38A; --verificado-suave: rgba(76, 195, 138, 0.14); --sobre-llama: #140C19;
+    --sombra: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --fondo: #140C19; --superficie: #1E1325; --superficie-2: #27192F;
+  --tinta: #EEE6F2; --tenue: #AB9DB5; --linea: #3A2946;
+  --llama: #F2559F; --llama-suave: rgba(242, 85, 159, 0.12); --llama-media: rgba(242, 85, 159, 0.34);
+  --morado: #C38BE3; --morado-suave: rgba(195, 139, 227, 0.12); --morado-medio: rgba(195, 139, 227, 0.26);
+  --hollin: #C38BE3; --hollin-suave: rgba(195, 139, 227, 0.12);
+  --verificado: #4CC38A; --verificado-suave: rgba(76, 195, 138, 0.14); --sobre-llama: #140C19;
+  --sombra: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+body {
+  margin: 0; background: var(--fondo); color: var(--tinta);
+  font-family: var(--fuente); font-size: 15px; line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--llama); outline-offset: 2px; }
+.oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Cabecera */
+.cabecera {
+  display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between;
+  padding: 18px clamp(16px, 3vw, 32px); border-bottom: 1px solid var(--linea); background: var(--superficie);
+}
+.cabecera h1 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+.cabecera p { margin: 2px 0 0; color: var(--tenue); font-size: 13.5px; }
+.fuente-datos { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--tenue); }
+.boton-sec {
+  border: 1px solid var(--linea); background: var(--superficie); border-radius: 8px;
+  padding: 7px 12px; cursor: pointer; font-size: 13px; font-weight: 600;
+}
+.boton-sec:hover { border-color: var(--tenue); }
+
+/* Pestañas */
+.pestanas {
+  display: flex; gap: 4px; padding: 0 clamp(16px, 3vw, 32px); background: var(--superficie);
+  border-bottom: 1px solid var(--linea); position: sticky; top: 0; z-index: 10;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 11; background: var(--superficie); }
+.pestanas { top: env(safe-area-inset-top, 0px); }
+.pestana {
+  position: relative; border: 0; background: none; cursor: pointer; text-align: left;
+  padding: 12px 18px 13px; display: grid; gap: 1px; color: var(--tenue);
+}
+.pestana-nombre { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.pestana-desc { font-size: 12.5px; }
+.pestana[aria-selected="true"] { color: var(--tinta); }
+.pestana[aria-selected="true"] .pestana-nombre { color: var(--morado); }
+.pestana[aria-selected="true"]::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--llama); }
+.pestana:hover { color: var(--tinta); }
+.contador { background: var(--llama); color: var(--sobre-llama); border-radius: 999px; font-size: 11.5px; padding: 1px 7px; font-weight: 700; }
+@media (max-width: 520px) { .pestana-desc { display: none; } .pestana { padding: 12px 14px; } }
+
+.panel-pestana { padding: clamp(16px, 2.5vw, 28px) clamp(16px, 3vw, 32px) 96px; }
+.experimento { max-width: 920px; margin: 0 auto; }
+.cobertura-contenido { max-width: 1080px; margin: 0 auto; }
+
+/* Formulario */
+.seccion-form {
+  background: var(--superficie); border: 1px solid var(--linea); border-radius: 14px;
+  padding: 20px 22px 6px; margin-bottom: 14px; box-shadow: var(--sombra);
+}
+.seccion-cab h2 { margin: 0; font-size: 16px; font-weight: 700; color: var(--morado); }
+.seccion-cab .ayuda { margin: 2px 0 14px; }
+.dos-columnas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; }
+@media (max-width: 680px) { .dos-columnas { grid-template-columns: minmax(0, 1fr); } }
+.ayuda { margin: 0 0 14px; color: var(--tenue); font-size: 13px; }
+.accion-examinar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px;
+  background: var(--morado); color: #fff; border-radius: 14px; padding: 16px 18px 16px 22px; margin: 18px 0 10px;
+}
+.frase-previa { margin: 0; font-size: 15px; font-weight: 600; max-width: 60ch; line-height: 1.35; }
+.frase-previa span { opacity: 0.75; font-weight: 500; display: block; font-size: 12.5px; margin-bottom: 2px; }
+.entornos { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-bottom: 18px; }
+.entorno {
+  text-align: left; border: 1px solid var(--linea); background: var(--superficie-2); border-radius: 9px;
+  padding: 8px 10px; cursor: pointer; font-size: 13px; line-height: 1.3;
+}
+.entorno b { display: block; font-weight: 600; font-size: 13.5px; }
+.entorno span { color: var(--tenue); font-size: 12px; }
+.entorno[aria-pressed="true"] { border-color: var(--llama); background: var(--llama-suave); }
+.campo { margin-bottom: 18px; }
+.campo-titulo { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+.campo-titulo label, .campo-titulo .etq { font-weight: 600; font-size: 13.5px; }
+.valor { display: flex; align-items: center; gap: 6px; }
+.valor input[type="number"] {
+  width: 78px; padding: 4px 6px; border: 1px solid var(--linea); border-radius: 6px;
+  background: var(--superficie-2); text-align: right;
+}
+.valor select { padding: 4px 6px; border: 1px solid var(--linea); border-radius: 6px; background: var(--superficie-2); }
+input[type="range"] { width: 100%; accent-color: var(--llama); margin: 0; }
+.marcas { position: relative; height: 30px; margin-top: 2px; font-size: 11px; color: var(--tenue); }
+.marcas span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.marcas span.abajo { top: 12px; }
+.marcas span.fin { transform: translateX(-100%); text-align: right; }
+.marcas span.fin::before { margin: 0 0 1px auto; }
+.marcas span.abajo::before { height: 17px; margin-top: -12px; }
+.marcas span::before { content: ""; display: block; width: 1px; height: 5px; background: var(--tenue); margin: 0 auto 1px; }
+.opciones { display: flex; flex-wrap: wrap; gap: 6px; }
+.opcion {
+  border: 1px solid var(--linea); background: var(--superficie-2); border-radius: 999px;
+  padding: 5px 11px; cursor: pointer; font-size: 13px;
+}
+.opcion[aria-pressed="true"] { border-color: var(--llama); background: var(--llama-suave); color: var(--tinta); font-weight: 600; }
+.nota-entorno { font-size: 12px; color: var(--hollin); margin: -12px 0 16px; }
+.examinar {
+  border: 0; border-radius: 10px; padding: 12px 22px; cursor: pointer; flex: 0 0 auto;
+  background: var(--llama); color: #fff; font-weight: 700; font-size: 15px;
+}
+.examinar:hover { filter: brightness(1.08); }
+.examinar[data-pendiente="true"] { box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.35); }
+@media (max-width: 520px) { .examinar { width: 100%; } }
+details.metodo { margin-top: 6px; font-size: 13px; padding: 0 4px; }
+details.metodo summary { cursor: pointer; color: var(--tenue); font-weight: 600; }
+.pesos { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center; margin-top: 10px; }
+.pesos input { width: 60px; padding: 3px 6px; border: 1px solid var(--linea); border-radius: 6px; background: var(--superficie-2); text-align: right; }
+details.metodo p { color: var(--tenue); margin: 10px 0 0; }
+
+/* Resultados */
+.cobertura-contenido > .bloque, #zona-vacios > .bloque, #zona-resultados > .bloque, #resumen-escenario > .bloque { margin-bottom: 16px; }
+
+/* Resumen del escenario */
+.resumen-cab { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: start; gap: 10px 20px; margin-bottom: 14px; }
+.resumen-cab h2 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.01em; color: var(--tinta); }
+.resumen-cab p { margin: 2px 0 0; color: var(--tenue); font-size: 13px; }
+.variables { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin: 0; }
+.variable { background: var(--superficie-2); border: 1px solid var(--linea); border-radius: 10px; padding: 10px 12px; margin: 0; }
+.variable dt { font-size: 12px; color: var(--tenue); }
+.variable dd { margin: 2px 0 0; font-size: 16px; font-weight: 700; line-height: 1.25; }
+.variable dd small { display: block; font-size: 12px; font-weight: 500; color: var(--tenue); }
+.distribucion { margin-top: 18px; display: grid; grid-template-columns: minmax(180px, 260px) minmax(0, 1fr); gap: 14px 28px; align-items: center; }
+@media (max-width: 700px) { .distribucion { grid-template-columns: minmax(0, 1fr); } }
+.cifra-principal b { font-size: 34px; font-weight: 800; line-height: 1; color: var(--llama); letter-spacing: -0.02em; }
+.cifra-principal b span { font-size: 18px; color: var(--tenue); font-weight: 700; }
+.cifra-principal p { margin: 4px 0 0; font-size: 13.5px; color: var(--tenue); }
+.barra-niveles { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: var(--superficie-2); border: 1px solid var(--linea); }
+.barra-niveles span { display: block; height: 100%; }
+.leyenda-niveles { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; font-size: 13px; color: var(--tenue); }
+.leyenda-niveles b { color: var(--tinta); }
+.leyenda-niveles i, .marca-nivel { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: 0; }
+.n-alta { background: var(--llama); }
+.n-media { background: var(--morado); }
+.n-baja { background: var(--linea); }
+.bloque {
+  background: var(--superficie); border: 1px solid var(--linea); border-radius: 14px;
+  padding: 18px 20px; margin-bottom: 18px; box-shadow: var(--sombra);
+}
+.bloque h3 { margin: 0 0 4px; font-size: 16px; font-weight: 700; color: var(--morado); }
+.bloque .ayuda { margin-bottom: 12px; }
+
+/* Mapa */
+.mapa-envoltura { overflow-x: auto; }
+.mapa { width: 100%; min-width: 560px; height: auto; display: block; }
+.mapa text { font-family: var(--fuente); fill: var(--tenue); font-size: 11px; }
+.mapa .eje-titulo { font-size: 12px; font-weight: 600; fill: var(--tinta); }
+.mapa .rejilla { stroke: var(--linea); stroke-width: 1; }
+.mapa .inv { cursor: pointer; }
+.mapa .inv rect, .mapa .inv circle.punto { fill: var(--morado-suave); stroke: var(--morado); stroke-width: 1.2; }
+.mapa .inv.destacada rect, .mapa .inv.destacada circle.punto { fill: var(--morado-medio); stroke-width: 2; }
+.mapa .inv.tenue { opacity: 0.35; }
+.mapa .banda { fill: var(--morado-suave); stroke: var(--morado); stroke-dasharray: 4 3; stroke-width: 1; opacity: 0.7; }
+.mapa .inv:hover rect, .mapa .inv:hover circle.punto, .mapa .inv:focus rect, .mapa .inv:focus circle.punto { stroke-width: 2.5; }
+.mapa .ref path { fill: var(--superficie); stroke: var(--tinta); stroke-width: 1.4; }
+.mapa .ref text { fill: var(--tinta); font-weight: 600; }
+.mapa .etq-inv { fill: var(--tinta); font-size: 10.5px; font-weight: 600; pointer-events: none; }
+.leyenda { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 10px; font-size: 12.5px; color: var(--tenue); }
+.leyenda i { display: inline-block; width: 14px; height: 10px; margin-right: 6px; vertical-align: -1px; border: 1.2px solid var(--morado); background: var(--morado-suave); border-radius: 2px; }
+.leyenda i.b { border-style: dashed; }
+.leyenda i.r { width: 10px; height: 10px; transform: rotate(45deg); border-color: var(--tinta); background: var(--superficie); border-radius: 0; }
+.leyenda i.e { border: 0; border-radius: 50%; background: radial-gradient(circle, #fff 0 18%, var(--llama) 45%, transparent 72%); width: 14px; height: 14px; }
+.sin-mapa { margin: 10px 0 0; font-size: 12.5px; color: var(--tenue); }
+.tooltip {
+  position: fixed; z-index: 20; pointer-events: none; background: var(--tinta); color: var(--superficie);
+  padding: 6px 9px; border-radius: 6px; font-size: 12px; max-width: 260px; opacity: 0; transition: opacity 0.1s;
+}
+
+/* Vacíos */
+.vacios-cab { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; align-items: baseline; }
+.grupo-vacios { margin-top: 14px; }
+.grupo-vacios > h4 { margin: 0 0 8px; font-size: 13.5px; font-weight: 700; color: var(--tinta); display: flex; align-items: center; gap: 8px; }
+.grupo-vacios > h4 .contador { background: var(--llama); }
+.grupo-vacios.morado > h4 .contador { background: var(--morado); }
+.tarjetas-vacio { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; }
+.vacio-tarjeta { border: 1px solid var(--linea); border-left: 4px solid var(--llama); border-radius: 10px; padding: 12px 14px; background: var(--superficie); }
+.grupo-vacios.morado .vacio-tarjeta { border-left-color: var(--morado); }
+.vacio-tarjeta h5 { margin: 0 0 8px; font-size: 14.5px; font-weight: 700; }
+.vacio-tarjeta p { margin: 8px 0 0; font-size: 13px; color: var(--tenue); }
+.lados { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.lado-titulo { font-size: 12px; color: var(--tenue); margin-bottom: 4px; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--morado-suave); color: var(--morado); font-weight: 600; }
+.chip.vacio { background: none; border: 1px dashed var(--linea); color: var(--tenue); font-weight: 500; }
+.sin-cruce { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--linea); font-size: 12.5px; font-weight: 600; color: var(--llama); }
+.calidad { display: grid; gap: 10px; }
+.calidad-fila { display: grid; grid-template-columns: 90px minmax(0, 1fr) 70px; gap: 12px; align-items: center; font-size: 13px; }
+.calidad-fila .nombre { font-weight: 600; }
+.calidad-fila .cifra { text-align: right; color: var(--tenue); }
+.calidad-barra { height: 8px; border-radius: 4px; background: var(--superficie-2); border: 1px solid var(--linea); overflow: hidden; }
+.calidad-barra span { display: block; height: 100%; background: var(--morado); }
+.calidad details { font-size: 12.5px; color: var(--tenue); grid-column: 2 / 4; margin-top: -4px; }
+.calidad summary { cursor: pointer; }
+.ok-cobertura { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; background: var(--verificado-suave); color: var(--verificado); font-weight: 600; font-size: 14px; margin-top: 12px; }
+
+/* Grupos por relevancia */
+.grupo-nivel { margin-top: 16px; }
+.grupo-nivel:first-of-type { margin-top: 4px; }
+.grupo-nivel-cab { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; }
+.grupo-nivel-cab h4 { margin: 0; font-size: 14px; font-weight: 700; display: flex; align-items: center; }
+.grupo-nivel-cab p { margin: 0; font-size: 12.5px; color: var(--tenue); }
+.item.nivel-alta { border-left: 4px solid var(--llama); }
+.item.nivel-media { border-left: 4px solid var(--morado); }
+.item.nivel-baja { border-left: 4px solid var(--linea); }
+.item.nivel-alta .puntaje b { color: var(--llama); }
+.item.nivel-media .puntaje b { color: var(--morado); }
+.item.nivel-alta .medidor span { background: var(--llama); }
+.item.nivel-media .medidor span { background: var(--morado); }
+.item.nivel-baja .medidor span { background: var(--tenue); }
+.item.nivel-alta .rango { color: var(--llama); }
+.item.nivel-media .rango { color: var(--morado); }
+
+/* Lista */
+.barra-lista { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 12px; }
+.barra-lista .acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+.lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.item { border: 1px solid var(--linea); border-radius: 12px; background: var(--superficie); overflow: hidden; }
+.item.resaltado { border-color: var(--llama); box-shadow: 0 0 0 3px var(--llama-suave); }
+.item-cab { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 12px; padding: 14px 16px; align-items: start; }
+.rango { font-size: 20px; font-weight: 800; color: var(--tenue); line-height: 1.1; }
+.item h4 { margin: 0; font-size: 15px; font-weight: 700; }
+.item .titulo { margin: 2px 0 8px; color: var(--tenue); font-size: 13px; }
+.puntaje { text-align: right; min-width: 92px; }
+.puntaje b { font-size: 22px; font-weight: 800; display: block; line-height: 1; }
+.puntaje small { color: var(--tenue); font-size: 11.5px; }
+.medidor { height: 6px; border-radius: 3px; background: var(--superficie-2); border: 1px solid var(--linea); margin-top: 6px; overflow: hidden; }
+.medidor span { display: block; height: 100%; background: var(--llama); }
+.desglose { display: flex; flex-wrap: wrap; gap: 5px; }
+.comp { font-size: 12px; border-radius: 6px; padding: 2px 7px; background: var(--superficie-2); border: 1px solid var(--linea); }
+.comp.alto { background: var(--morado-suave); color: var(--morado); border-color: transparent; font-weight: 600; }
+.comp.nulo { color: var(--tenue); border-style: dashed; }
+.insignias { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.insignia { font-size: 11.5px; padding: 2px 7px; border-radius: 999px; font-weight: 600; }
+.insignia.v { background: var(--verificado-suave); color: var(--verificado); }
+.insignia.a { background: var(--hollin-suave); color: var(--hollin); }
+.insignia.g { background: var(--superficie-2); color: var(--tenue); border: 1px solid var(--linea); }
+.item-acciones { display: flex; gap: 10px; align-items: center; padding: 0 16px 12px 64px; flex-wrap: wrap; }
+.enlace { background: none; border: 0; padding: 0; color: var(--llama); font-weight: 600; font-size: 13px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.comparar-check { display: flex; gap: 6px; align-items: center; font-size: 13px; color: var(--tenue); cursor: pointer; }
+.comparar-check input { accent-color: var(--llama); }
+.ficha { border-top: 1px solid var(--linea); background: var(--superficie-2); padding: 14px 16px 16px 64px; font-size: 13.5px; }
+.ficha dl { display: grid; grid-template-columns: minmax(120px, 170px) 1fr; gap: 6px 14px; margin: 0 0 12px; }
+.ficha dt { color: var(--tenue); }
+.ficha dd { margin: 0; }
+.ficha .texto-psi { color: var(--tenue); max-width: 75ch; margin: 6px 0 12px; }
+.ficha h5 { margin: 12px 0 4px; font-size: 13px; }
+.ficha ul { margin: 0; padding-left: 18px; }
+.ficha a { color: var(--llama); font-weight: 600; }
+@media (max-width: 600px) {
+  .item-cab { grid-template-columns: 28px minmax(0, 1fr); }
+  .puntaje { grid-column: 2; text-align: left; }
+  .item-acciones, .ficha { padding-left: 16px; }
+  .ficha dl { grid-template-columns: 1fr; gap: 0 0; }
+  .ficha dd { margin-bottom: 6px; }
+}
+
+/* Barra de comparación y diálogo */
+.barra-comparar {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); z-index: 15;
+  background: var(--tinta); color: var(--superficie); border-radius: 999px; padding: 8px 8px 8px 18px;
+  display: none; gap: 12px; align-items: center; font-size: 14px; box-shadow: var(--sombra);
+}
+.barra-comparar.visible { display: flex; }
+.barra-comparar button { border: 0; border-radius: 999px; padding: 7px 14px; font-weight: 700; cursor: pointer; background: var(--llama); color: var(--sobre-llama); }
+.barra-comparar button.limpiar { background: transparent; color: var(--superficie); font-weight: 500; text-decoration: underline; padding: 7px 8px; }
+dialog { border: 1px solid var(--linea); border-radius: 14px; padding: 0; width: min(1100px, 94vw); max-height: 86vh; background: var(--superficie); color: var(--tinta); }
+dialog::backdrop { background: rgba(31, 20, 38, 0.55); }
+.dialogo-cab { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--linea); }
+.dialogo-cab h3 { margin: 0; font-size: 16px; }
+.tabla-envoltura { overflow: auto; max-height: calc(86vh - 60px); }
+table.comparacion { border-collapse: collapse; width: 100%; font-size: 13px; }
+table.comparacion th, table.comparacion td { padding: 8px 12px; border-bottom: 1px solid var(--linea); text-align: left; vertical-align: top; min-width: 140px; }
+table.comparacion thead th { position: sticky; top: 0; background: var(--superficie); }
+table.comparacion tbody th { color: var(--tenue); font-weight: 600; white-space: nowrap; }
+table.comparacion td.igual { background: var(--morado-suave); }
+.inicio { padding: 28px 24px; text-align: left; color: var(--tenue); }
+.inicio strong { color: var(--tinta); font-size: 16px; }
+.inicio p { margin: 6px 0 16px; max-width: 60ch; }
+.desactualizado { display: none; margin: 0 0 14px; padding: 10px 14px; border-radius: 10px; background: var(--llama-suave); color: var(--tinta); font-size: 13.5px; font-weight: 600; border: 1px solid var(--llama-media); }
+.desactualizado.visible { display: block; }
+/* Favorabilidad para un incendio */
+.accion-texto { flex: 1 1 280px; min-width: 0; }
+.mini-llama { width: 46px; height: 58px; flex: 0 0 auto; border-radius: 10px; background: radial-gradient(circle at 50% 72%, #3B1652 0%, #170B1E 75%); }
+.fuego-previo { margin: 4px 0 0; font-size: 12.5px; opacity: 0.9; }
+.fuego-previo b { font-weight: 700; }
+.fuego-grid { display: grid; grid-template-columns: minmax(250px, 330px) minmax(0, 1fr); gap: 20px 32px; align-items: start; margin-top: 4px; }
+@media (max-width: 780px) { .fuego-grid { grid-template-columns: minmax(0, 1fr); } }
+.llamas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; }
+.llama-tarjeta { margin: 0; text-align: center; }
+.escena-llama {
+  border-radius: 12px; border: 1px solid var(--linea); aspect-ratio: 4 / 5; display: grid; place-items: center; overflow: hidden;
+  background: radial-gradient(circle at 50% 74%, #3B1652 0%, #1E0E27 52%, #12091A 100%);
+}
+.llama-tarjeta.tuya .escena-llama { border-color: var(--llama); box-shadow: 0 0 0 3px var(--llama-suave); }
+.escena-llama svg { width: 92%; height: auto; display: block; overflow: visible; }
+.llama-tarjeta figcaption { margin-top: 8px; display: grid; gap: 1px; }
+.llama-nombre { font-weight: 700; font-size: 13.5px; }
+.llama-cond { font-size: 11.5px; color: var(--tenue); line-height: 1.35; }
+.respira { transform-box: fill-box; transform-origin: 50% 88%; animation: respirar var(--ritmo, 3.2s) ease-in-out infinite; }
+.respira.parpadea { animation: parpadear var(--ritmo, 1.4s) ease-in-out infinite; }
+@keyframes respirar { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.045, 0.97); } }
+@keyframes parpadear { 0%, 100% { transform: skewX(0deg) scale(1, 1); } 25% { transform: skewX(2.2deg) scale(0.98, 1.04); } 60% { transform: skewX(-1.8deg) scale(1.02, 0.97); } }
+.nivel-fuego { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.nivel-fuego b { font-size: clamp(22px, 2.4vw, 28px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+.nivel-fuego span { font-size: 13px; color: var(--tenue); }
+.nivel-fuego.n-menor b { color: var(--morado); }
+.nivel-fuego.n-similar b { color: var(--tinta); }
+.nivel-fuego.n-mayor b, .nivel-fuego.n-mucho b { color: var(--llama); }
+.medidor-fuego { position: relative; margin: 30px 0 4px; }
+.medidor-tramos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; height: 12px; }
+.medidor-tramos span { border-radius: 3px; }
+.medidor-tramos span:nth-child(1) { background: var(--morado-medio); }
+.medidor-tramos span:nth-child(2) { background: var(--linea); }
+.medidor-tramos span:nth-child(3) { background: var(--llama-media); }
+.medidor-tramos span:nth-child(4) { background: var(--llama); }
+.medidor-etiquetas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-top: 6px; font-size: 11.5px; color: var(--tenue); line-height: 1.25; }
+.medidor-etiquetas span.activo { color: var(--tinta); font-weight: 700; }
+.marca-iss { position: absolute; top: -24px; transform: translateX(-50%); font-size: 11px; font-weight: 700; color: var(--tenue); text-align: center; }
+.marca-iss::after { content: ""; display: block; width: 2px; height: 22px; margin: 2px auto 0; background: var(--tenue); }
+.indicador-fuego {
+  position: absolute; top: -7px; width: 26px; height: 26px; border-radius: 50%; transform: translateX(-50%);
+  background: var(--superficie); border: 4px solid var(--llama); box-shadow: 0 2px 8px rgba(209, 17, 122, 0.35);
+  transition: left 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.factores { display: grid; gap: 12px; margin-top: 22px; }
+.factor { display: grid; grid-template-columns: minmax(110px, 150px) minmax(0, 1fr); gap: 3px 14px; align-items: center; }
+.factor-nombre { font-weight: 600; font-size: 13px; }
+.factor-barra { position: relative; height: 10px; border-radius: 5px; background: var(--superficie-2); border: 1px solid var(--linea); }
+.factor-barra::before { content: ""; position: absolute; left: 50%; top: -4px; bottom: -4px; width: 1px; background: var(--tenue); }
+.factor-barra span { position: absolute; top: 0; bottom: 0; left: 50%; width: 0; border-radius: 5px; transition: width 0.6s ease, left 0.6s ease, background-color 0.3s; }
+.factor-barra span.sube { background: var(--llama); }
+.factor-barra span.baja { background: var(--morado); }
+.factor-detalle { grid-column: 2; font-size: 12.5px; color: var(--tenue); line-height: 1.4; }
+.factor-detalle .fuente { color: var(--morado); font-weight: 600; }
+@media (max-width: 600px) { .factor { grid-template-columns: minmax(0, 1fr); } .factor-detalle { grid-column: 1; } .factor.escala > span:first-child { display: none; } }
+.escala-factores { display: flex; justify-content: space-between; font-size: 11px; color: var(--tenue); }
+.factor.escala { margin-bottom: -6px; }
+.vista-ajuste { margin: 8px 0 12px; padding: 10px 14px; border-radius: 10px; background: var(--morado-suave); border: 1px solid var(--morado-medio); font-size: 13.5px; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; justify-content: space-between; }
+.vista-ajuste b { color: var(--morado); }
+.vista-ajuste[hidden] { display: none; }
+.palancas-bloque, .recomendaciones { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--linea); }
+.palancas-bloque h4, .recomendaciones > h4 { margin: 0 0 2px; font-size: 14.5px; font-weight: 700; }
+.palancas { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+.palanca { position: relative; border: 1px solid var(--linea); background: var(--superficie); border-radius: 10px; padding: 10px 12px; text-align: left; cursor: pointer; display: grid; gap: 2px; }
+.palanca:hover { border-color: var(--morado); }
+.palanca[aria-pressed="true"] { border-color: var(--llama); background: var(--llama-suave); box-shadow: 0 0 0 3px var(--llama-suave); }
+.palanca b { font-size: 13.5px; }
+.palanca small { font-size: 12px; color: var(--tenue); }
+.palanca .efecto { font-size: 12px; font-weight: 700; color: var(--morado); }
+.palanca .efecto.nulo { color: var(--tenue); font-weight: 500; }
+.etiqueta-efecto { position: absolute; top: -9px; right: 10px; background: var(--llama); color: #fff; font-size: 10.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; }
+.columnas-reco { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 10px; }
+.col-reco h5 { margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--morado); display: flex; align-items: center; gap: 8px; }
+.col-reco h5 i { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; font-style: normal; font-size: 12px; background: var(--morado-suave); }
+.reco { border: 1px solid var(--linea); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; font-size: 13px; background: var(--superficie); }
+.reco.clave { border-left: 4px solid var(--llama); }
+.reco p { margin: 0 0 6px; }
+.reco b { display: block; font-size: 13.5px; margin-bottom: 2px; }
+.chip-inv { border: 0; cursor: pointer; font-family: inherit; }
+.chip-inv:hover { background: var(--morado-medio); }
+.aviso-fuego { margin: 16px 0 0; font-size: 12px; color: var(--tenue); }
+details.fuentes { margin-top: 6px; font-size: 12px; color: var(--tenue); }
+details.fuentes summary { cursor: pointer; font-weight: 600; }
+details.fuentes ul { margin: 6px 0 0; padding-left: 18px; }
+details.fuentes a { color: var(--morado); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="cabecera">
+  <div>
+    <h1>Evaluador de escenarios de incendio</h1>
+    <p>Investigaciones de combustión de NASA PSI, ordenadas según las condiciones de tu escenario.</p>
+  </div>
+  <div class="fuente-datos">
+    <span id="fuente-texto">Cargando fichas…</span>
+    <button class="boton-sec" id="boton-cargar" type="button">Cargar fichas</button>
+    <input type="file" id="archivo-fichas" accept=".json,application/json" class="oculto">
+  </div>
+</header>
+
+<nav class="pestanas" role="tablist" aria-label="Secciones">
+  <button class="pestana" role="tab" id="tab-experimento" aria-controls="panel-experimento" aria-selected="true" type="button">
+    <span class="pestana-nombre">Experimento</span>
+    <span class="pestana-desc">Define tu escenario</span>
+  </button>
+  <button class="pestana" role="tab" id="tab-cobertura" aria-controls="panel-cobertura" aria-selected="false" tabindex="-1" type="button">
+    <span class="pestana-nombre">Cobertura <span class="contador" id="contador-cobertura" hidden></span></span>
+    <span class="pestana-desc">Qué dicen los datos de PSI</span>
+  </button>
+</nav>
+
+<main>
+  <!-- Pestaña 1: Experimento -->
+  <section class="panel-pestana" id="panel-experimento" role="tabpanel" aria-labelledby="tab-experimento">
+    <div class="experimento">
+      <div class="seccion-form">
+        <div class="seccion-cab">
+          <h2>Punto de partida</h2>
+          <p class="ayuda">Elige un entorno para rellenar las condiciones, o empieza desde cero.</p>
+        </div>
+        <div class="entornos" id="entornos" role="group" aria-label="Entornos de referencia"></div>
+        <p class="nota-entorno" id="nota-entorno" hidden></p>
+      </div>
+
+      <div class="seccion-form">
+        <div class="seccion-cab">
+          <h2>Atmósfera</h2>
+          <p class="ayuda">Las marcas bajo cada control indican los entornos de referencia.</p>
+        </div>
+        <div class="dos-columnas">
+          <div class="campo">
+            <div class="campo-titulo">
+              <label for="o2-num">Oxígeno</label>
+              <span class="valor"><input type="number" id="o2-num" min="0" max="100" step="0.5"> %</span>
+            </div>
+            <input type="range" id="o2-rango" min="0" max="100" step="0.5" aria-label="Oxígeno en porcentaje">
+            <div class="marcas" id="marcas-o2" aria-hidden="true"></div>
+          </div>
+          <div class="campo">
+            <div class="campo-titulo">
+              <label for="p-num">Presión</label>
+              <span class="valor">
+                <input type="number" id="p-num" min="0" step="0.1">
+                <select id="p-unidad" aria-label="Unidad de presión">
+                  <option value="psi">psi</option><option value="kPa">kPa</option><option value="atm">atm</option>
+                </select>
+              </span>
+            </div>
+            <input type="range" id="p-rango" min="10" max="200" step="0.5" aria-label="Presión en kilopascales">
+            <div class="marcas" id="marcas-p" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="seccion-form">
+        <div class="seccion-cab">
+          <h2>Condiciones del incendio</h2>
+          <p class="ayuda">Qué podría arder, en qué entorno y con qué ventilación.</p>
+        </div>
+        <div class="dos-columnas">
+          <div class="campo">
+            <div class="campo-titulo"><span class="etq" id="e-material">Material que podría arder</span></div>
+            <div class="opciones" id="op-material" role="group" aria-labelledby="e-material"></div>
+          </div>
+          <div class="campo">
+            <div class="campo-titulo"><span class="etq" id="e-gravedad">Gravedad</span></div>
+            <div class="opciones" id="op-gravedad" role="group" aria-labelledby="e-gravedad"></div>
+          </div>
+          <div class="campo">
+            <div class="campo-titulo"><span class="etq" id="e-flujo">Flujo de aire</span></div>
+            <div class="opciones" id="op-flujo" role="group" aria-labelledby="e-flujo"></div>
+          </div>
+          <div class="campo">
+            <div class="campo-titulo"><span class="etq" id="e-interes">Me interesa</span></div>
+            <div class="opciones" id="op-interes" role="group" aria-labelledby="e-interes"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accion-examinar">
+        <svg class="mini-llama" id="mini-llama" viewBox="25 55 110 137" aria-hidden="true"></svg>
+        <div class="accion-texto">
+          <p class="frase-previa" id="frase"></p>
+          <p class="fuego-previo" id="fuego-previo"></p>
+        </div>
+        <button class="examinar" id="examinar" type="button">Examinar experimentos</button>
+      </div>
+
+      <details class="metodo">
+        <summary>Cómo se calcula la relevancia</summary>
+        <p>Cada investigación recibe una cercanía de 0 a 1 en cada variable. El puntaje es el promedio ponderado de las variables con datos; las que no tienen datos no cuentan, y se informa la cobertura. El orden final ajusta el puntaje por la cobertura, para no poner arriba investigaciones de las que casi no se sabe nada.</p>
+        <div class="pesos" id="pesos"></div>
+        <p>Oxígeno: 1 dentro del rango, pierde 0,1 por cada punto porcentual de distancia. Presión: 1 dentro del rango, llega a 0 al doble o a la mitad. Material: 1 misma categoría, 0,5 misma fase. Gravedad: los datos de PSI son de microgravedad o de tierra; para gravedad lunar o marciana ambos solo acotan el comportamiento.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- Pestaña 2: Cobertura -->
+  <section class="panel-pestana" id="panel-cobertura" role="tabpanel" aria-labelledby="tab-cobertura" hidden>
+    <div class="cobertura-contenido" aria-live="polite">
+      <p class="desactualizado" id="desactualizado">
+        Cambiaste el escenario en Experimento. <button class="enlace" type="button" id="reexaminar">Examinar de nuevo</button>
+      </p>
+      <div id="resumen-escenario"></div>
+      <div id="zona-fuego"></div>
+      <div id="zona-vacios"></div>
+
+      <div class="bloque" id="bloque-mapa">
+        <h3>Mapa de condiciones</h3>
+        <p class="ayuda">Rangos de oxígeno y presión de cada investigación, frente a los entornos de referencia y tu escenario.</p>
+        <div class="mapa-envoltura"><svg class="mapa" id="mapa" viewBox="0 0 760 420" role="img" aria-label="Mapa de oxígeno contra presión"></svg></div>
+        <div class="leyenda">
+          <span><i></i>Rango de una investigación</span>
+          <span><i class="b"></i>Solo se conoce una de las dos variables</span>
+          <span><i class="r"></i>Entorno de referencia</span>
+          <span><i class="e"></i>Tu escenario</span>
+        </div>
+        <p class="sin-mapa" id="sin-mapa"></p>
+      </div>
+
+      <div id="zona-resultados">
+        <div class="bloque inicio" id="inicio">
+          <strong>Todavía no has examinado ningún escenario.</strong>
+          <p>Define las condiciones en la pestaña Experimento y pulsa Examinar experimentos. Aquí verás qué investigaciones se acercan a tu escenario y qué parte no tiene datos en PSI.</p>
+          <button class="boton-sec" type="button" id="ir-experimento">Ir a Experimento</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="barra-comparar" id="barra-comparar">
+  <span id="texto-comparar"></span>
+  <button type="button" id="abrir-comparar">Comparar</button>
+  <button type="button" class="limpiar" id="limpiar-comparar">Quitar</button>
+</div>
+
+<dialog id="dialogo-comparar" aria-labelledby="t-comparar">
+  <div class="dialogo-cab">
+    <h3 id="t-comparar">Comparación de investigaciones</h3>
+    <button class="boton-sec" type="button" id="cerrar-comparar">Cerrar</button>
+  </div>
+  <div class="tabla-envoltura" id="tabla-comparar"></div>
+</dialog>
+
+<div class="tooltip" id="tooltip" role="tooltip"></div>
+
+<script>
+/* Fichas de respaldo: generadas en modo reglas a partir de los metadatos públicos de PSI.
+   Si la página se sirve desde el contenedor, se cargan primero las fichas de datos/salida. */
+const FICHAS_EMBEBIDAS = /*__DATOS__*/[];
+const FECHA_EMBEBIDAS = "/*__FECHA__*/";
+
+/* ------------------------------------------------------------------ */
+/* Referencias                                                         */
+/* ------------------------------------------------------------------ */
+const ENTORNOS = [
+  { id: "estacion", nombre: "Estación espacial", o2: 21, p: 101.3, gravedad: "micro", flujo: "suave", nota: "" },
+  { id: "base_lunar", nombre: "Base lunar", o2: 30, p: 70.3, gravedad: "lunar", flujo: "suave", nota: "" },
+  { id: "rover", nombre: "Rover presurizado", o2: 30, p: 70.3, gravedad: "lunar", flujo: "suave", nota: "" },
+  { id: "traje", nombre: "Traje espacial", o2: 100, p: 29.6, gravedad: "micro", flujo: "quieto", nota: "" },
+  { id: "tierra", nombre: "Tierra", o2: 21, p: 101.3, gravedad: "terrestre", flujo: "quieto", nota: "" },
+  { id: "marte", nombre: "Base marciana", o2: 30, p: 70.3, gravedad: "marciana", flujo: "suave",
+    nota: "Atmósfera marciana aún no definida: se usan los valores de la base lunar como supuesto." },
+];
+const MATERIALES = [
+  { id: "tela", nombre: "Tela", fase: "solido" },
+  { id: "plastico", nombre: "Plástico", fase: "solido" },
+  { id: "espuma", nombre: "Espuma", fase: "solido" },
+  { id: "liquido", nombre: "Líquido", fase: "liquido" },
+  { id: "gas", nombre: "Gas", fase: "gas" },
+];
+const GRAVEDADES = [
+  { id: "micro", nombre: "Microgravedad" }, { id: "lunar", nombre: "Lunar" },
+  { id: "marciana", nombre: "Marciana" }, { id: "terrestre", nombre: "Terrestre" },
+];
+const FLUJOS = [
+  { id: "quieto", nombre: "Aire quieto", min: 0, max: 2 },
+  { id: "suave", nombre: "Ventilación suave", min: 2, max: 20 },
+  { id: "fuerte", nombre: "Ventilación fuerte", min: 20, max: 100 },
+];
+const INTERESES = [
+  { id: "prevencion", nombre: "Prevención" }, { id: "deteccion", nombre: "Detección" }, { id: "supresion", nombre: "Supresión" },
+];
+const ETIQUETAS = {
+  prevencion: "prevención", deteccion: "detección", supresion: "supresión", fundamental: "ciencia fundamental",
+  opuesto: "opuesto", concurrente: "concurrente", coflujo: "coflujo", contraflujo: "contraflujo", quiescente: "aire quieto", esferico: "esférico",
+  nave_espacial: "nave espacial", estacion_espacial: "estación espacial", base_lunar: "base lunar", base_marciana: "base marciana", rover_presurizado: "rover presurizado", tierra: "Tierra",
+  solido: "sólido", liquido: "líquido", gas: "gas",
+};
+const etq = (x) => ETIQUETAS[x] || x;
+const PESOS_INICIALES = { oxigeno: 30, presion: 20, material: 25, gravedad: 10, flujo: 10, interes: 5 };
+const NOMBRE_COMP = { oxigeno: "Oxígeno", presion: "Presión", material: "Material", gravedad: "Gravedad", flujo: "Flujo", interes: "Interés" };
+
+/* Palabras del texto de PSI que indican la categoría del material */
+const CATEGORIA_POR_PALABRA = [
+  ["tela", ["cotton", "fiberglass", "nomex", "sibal", "fabric", "cloth", "textile", "tela"]],
+  ["plastico", ["pmma", "acrylic", "ultem", "delrin", "polyethylene", "kapton", "silicone", "plastic", "polymer", "polycarbonate", "plástico", "plastico"]],
+  ["espuma", ["foam", "espuma"]],
+  ["liquido", ["heptane", "decane", "dodecane", "ethanol", "methanol", "isooctane", "octane", "hexane", "alcohol", "gota", "droplet", "liquid"]],
+  ["gas", ["propane", "ethylene", "methane", "hydrogen", "dimethyl ether", "butane", "gaseous", "quemador", "burner"]],
+  ["cera", ["candle", "wax"]],
+];
+const FASE_DE_CATEGORIA = { tela: "solido", plastico: "solido", espuma: "solido", cera: "solido", liquido: "liquido", gas: "gas" };
+const NOMBRE_CATEGORIA = { tela: "tela", plastico: "plástico", espuma: "espuma", cera: "cera", liquido: "líquido", gas: "gas" };
+
+/* ------------------------------------------------------------------ */
+/* Utilidades                                                          */
+/* ------------------------------------------------------------------ */
+const $ = (s) => document.querySelector(s);
+const fmt = (n, d = 1) => (n == null || isNaN(n)) ? "—" : Number(n).toLocaleString("es-CO", { maximumFractionDigits: d });
+const A_KPA = { psi: 6.894757, kPa: 1, atm: 101.325 };
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const num = (v) => { if (v == null || v === "") return null; const n = Number(v); return isFinite(n) ? n : null; };
+
+function rangoDe(r) {
+  if (!r) return null;
+  let a = num(r.min), b = num(r.max);
+  if (a == null && b == null) return null;
+  if (a == null) a = b; if (b == null) b = a;
+  return { min: Math.min(a, b), max: Math.max(a, b) };
+}
+
+/* ------------------------------------------------------------------ */
+/* Normalización de fichas (acepta las de IA, reglas o curadas a mano) */
+/* ------------------------------------------------------------------ */
+function normalizar(f) {
+  const comb = f.combustible || {};
+  const materiales = [].concat(comb.material || comb.materiales || []).filter(Boolean);
+  const geometrias = [].concat(comb.geometria || comb.geometrias || []).filter(Boolean);
+  const textoMat = (materiales.join(" ") + " " + geometrias.join(" ")).toLowerCase();
+  const categorias = new Set();
+  for (const [cat, palabras] of CATEGORIA_POR_PALABRA) if (palabras.some((p) => textoMat.includes(p))) categorias.add(cat);
+  const fases = new Set([].concat(comb.fase || comb.fases || []).filter(Boolean).map((x) => String(x).toLowerCase()));
+  categorias.forEach((c) => fases.add(FASE_DE_CATEGORIA[c]));
+
+  const tierra = /ground/i.test(f.tipo_proyecto || "");
+  const hw = (f.hardware || "") + " " + (f.sigla || "");
+  let familia = "Otro";
+  if (/ACME/i.test(hw)) familia = "ACME (CIR)";
+  else if (/MDCA|Droplet/i.test(hw) || /^(FLEX|CFI)/i.test(f.sigla || "")) familia = "Gotas MDCA (CIR)";
+  else if (/Glovebox|MSG/i.test(hw)) familia = "Conducto de flujo (MSG)";
+  else if (/Cygnus|SAFFIRE/i.test(hw)) familia = "Saffire (Cygnus)";
+  else if (/Soot|SAME|P-Trak|DAFT/i.test(hw)) familia = "Humo y aerosoles";
+  else if (tierra) familia = "Laboratorio en tierra";
+
+  let flujo = rangoDe(f.flujo_cm_s);
+  const config = [].concat(f.configuracion_flujo || []);
+  if (!flujo && config.includes("quiescente")) flujo = { min: 0, max: 0 };
+
+  const tr = f.trazabilidad || {};
+  return {
+    id: f.id_psi, sigla: f.sigla || "", titulo: f.titulo || "",
+    nombre: f.sigla || (f.id_psi + " (estudio en tierra)"),
+    tierra, plataforma: f.plataforma || (tierra ? "Laboratorio en tierra" : ""),
+    gravedad: tierra ? "1g" : "micro", familia, hardware: f.hardware || "",
+    fechas: [f.fecha_inicio, f.fecha_fin].filter(Boolean).join(" a "),
+    materiales, geometrias, categorias, fases,
+    o2: rangoDe(f.oxigeno_pct), p: rangoDe(f.presion_kpa), flujo, config,
+    diluyentes: [].concat(f.diluyentes || []), funciones: [].concat(f.funcion_seguridad || []),
+    entornos: [].concat(f.entornos_relevantes || []), mediciones: [].concat(f.mediciones || []),
+    variables: [].concat(f.variables_estudiadas || []), hallazgos: f.hallazgos_clave || "",
+    objetivos: f.objetivos || "",
+    metodo: tr.metodo_caracterizacion || "desconocido", verificado: !!tr.verificado_por_humano,
+    advertencias: [].concat(tr.advertencias || []), evidencia: tr.evidencia || {}, evidenciaOk: tr.evidencia_verificada || {},
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* Puntaje de relevancia (sin IA)                                      */
+/* ------------------------------------------------------------------ */
+function cercaniaRango(valor, r, fnDistancia) {
+  if (!r) return null;
+  if (valor >= r.min && valor <= r.max) return 1;
+  const borde = valor < r.min ? r.min : r.max;
+  return Math.max(0, 1 - fnDistancia(valor, borde));
+}
+const distO2 = (v, b) => Math.abs(v - b) / 10;
+const distP = (v, b) => (v > 0 && b > 0) ? Math.abs(Math.log(v / b)) / Math.log(2) : 1;
+
+function componentes(inv, sc) {
+  const c = {};
+  c.oxigeno = cercaniaRango(sc.o2, inv.o2, distO2);
+  c.presion = cercaniaRango(sc.p, inv.p, distP);
+
+  if (inv.categorias.size === 0 && inv.fases.size === 0) c.material = null;
+  else if (inv.categorias.has(sc.material)) c.material = 1;
+  else if (inv.fases.has(MATERIALES.find((m) => m.id === sc.material).fase)) c.material = 0.5;
+  else c.material = 0;
+
+  if (sc.gravedad === "micro") c.gravedad = inv.gravedad === "micro" ? 1 : 0.3;
+  else if (sc.gravedad === "terrestre") c.gravedad = inv.gravedad === "1g" ? 1 : 0.3;
+  else c.gravedad = 0.6;
+
+  const fu = FLUJOS.find((x) => x.id === sc.flujo);
+  if (!inv.flujo) c.flujo = null;
+  else if (inv.flujo.max >= fu.min && inv.flujo.min <= fu.max) c.flujo = 1;
+  else {
+    const d = inv.flujo.max < fu.min ? fu.min - inv.flujo.max : inv.flujo.min - fu.max;
+    c.flujo = Math.max(0, 1 - d / 20);
+  }
+
+  if (sc.intereses.length === 0) c.interes = undefined;            // no se pidió: no cuenta
+  else if (inv.funciones.length === 0) c.interes = null;
+  else c.interes = inv.funciones.some((x) => sc.intereses.includes(x)) ? 1 : 0;
+  return c;
+}
+
+function evaluar(inv, sc, pesos) {
+  const c = componentes(inv, sc);
+  let suma = 0, pesoDatos = 0, pesoTotal = 0;
+  for (const k of Object.keys(c)) {
+    if (c[k] === undefined) continue;
+    pesoTotal += pesos[k];
+    if (c[k] === null) continue;
+    suma += pesos[k] * c[k]; pesoDatos += pesos[k];
+  }
+  const puntaje = pesoDatos > 0 ? suma / pesoDatos : 0;
+  const cobertura = pesoTotal > 0 ? pesoDatos / pesoTotal : 0;
+  return { inv, comp: c, puntaje, cobertura, orden: puntaje * (0.6 + 0.4 * cobertura) };
+}
+
+/* ------------------------------------------------------------------ */
+/* Detección de vacíos (sin IA)                                        */
+/* ------------------------------------------------------------------ */
+const cubreO2 = (inv, v) => inv.o2 && v >= inv.o2.min - 2 && v <= inv.o2.max + 2;
+const cubreP = (inv, v) => inv.p && v >= inv.p.min * 0.9 && v <= inv.p.max * 1.1;
+
+function masCercana(lista, campo, valor, distancia) {
+  let mejor = null;
+  for (const inv of lista) {
+    const r = inv[campo]; if (!r) continue;
+    const d = valor < r.min ? distancia(valor, r.min) : valor > r.max ? distancia(valor, r.max) : 0;
+    if (!mejor || d < mejor.d) mejor = { inv, d };
+  }
+  return mejor;
+}
+
+function detectarVacios(fichas, sc) {
+  const mat = MATERIALES.find((m) => m.id === sc.material);
+  const matTxt = mat.nombre.toLowerCase();
+  const nombres = (l) => l.map((i) => i.nombre);
+  const conMat = fichas.filter((i) => i.categorias.has(sc.material));
+  const conO2 = fichas.filter((i) => cubreO2(i, sc.o2));
+  const conP = fichas.filter((i) => cubreP(i, sc.p));
+  const r = { combinaciones: [], variables: [], gravedad: null, calidad: [], total: 0 };
+
+  if (conO2.length === 0) {
+    const c = masCercana(fichas, "o2", sc.o2, (a, b) => Math.abs(a - b));
+    r.variables.push({ titulo: `Oxígeno al ${fmt(sc.o2)} %`,
+      texto: c ? `Ninguna investigación lo cubre. La más cercana es ${c.inv.nombre}, con ${rangoTxt(c.inv.o2, "%")}.` : "No hay datos de oxígeno en las fichas." });
+  }
+  if (conP.length === 0) {
+    const c = masCercana(fichas, "p", sc.p, (a, b) => Math.abs(Math.log(a / b)));
+    r.variables.push({ titulo: `Presión de ${fmt(sc.p)} kPa`,
+      texto: c ? `Ninguna investigación la cubre. La más cercana es ${c.inv.nombre}, con ${rangoTxt(c.inv.p, "kPa")}.` : "No hay datos de presión en las fichas." });
+  }
+  if (conMat.length === 0) {
+    r.variables.push({ titulo: `Materiales tipo ${matTxt}`, texto: "Ninguna ficha identifica este tipo de material. Puede faltar en la extracción." });
+  } else {
+    if (conO2.length && !conMat.some((i) => cubreO2(i, sc.o2)))
+      r.combinaciones.push({ titulo: `${mat.nombre} con ${fmt(sc.o2)} % de oxígeno`,
+        a: { titulo: `Con ${matTxt}`, lista: nombres(conMat) }, b: { titulo: `Con ${fmt(sc.o2)} % de O₂`, lista: nombres(conO2) } });
+    if (conP.length && !conMat.some((i) => cubreP(i, sc.p)))
+      r.combinaciones.push({ titulo: `${mat.nombre} a ${fmt(sc.p)} kPa`,
+        a: { titulo: `Con ${matTxt}`, lista: nombres(conMat) }, b: { titulo: `A ${fmt(sc.p)} kPa`, lista: nombres(conP) } });
+  }
+  if (sc.gravedad === "lunar" || sc.gravedad === "marciana") {
+    r.gravedad = { titulo: `Gravedad ${sc.gravedad}`,
+      texto: "PSI no tiene datos de combustión en gravedad parcial. Los resultados en microgravedad y en gravedad terrestre solo acotan el comportamiento intermedio. Se esperan datos futuros de LUCI y FM2." };
+  }
+  const campos = [
+    ["Oxígeno", (i) => i.o2], ["Presión", (i) => i.p],
+    ["Material", (i) => i.categorias.size > 0], ["Flujo", (i) => i.flujo],
+  ];
+  for (const [nombre, tiene] of campos) {
+    const sin = fichas.filter((i) => !tiene(i));
+    r.calidad.push({ nombre, con: fichas.length - sin.length, total: fichas.length, sin: nombres(sin) });
+  }
+  r.total = r.combinaciones.length + r.variables.length + (r.gravedad ? 1 : 0);
+  return r;
+}
+
+/* ------------------------------------------------------------------ */
+/* Estado                                                              */
+/* ------------------------------------------------------------------ */
+const estado = {
+  fichas: [], fuente: "",
+  esc: { entorno: "base_lunar", o2: 30, p: 70.3, unidad: "psi", material: "tela", gravedad: "lunar", flujo: "suave", intereses: ["prevencion"] },
+  pesos: { ...PESOS_INICIALES },
+  resultados: null, vacios: null, examinado: null, escExaminado: null, palanca: null,
+  comparar: new Set(), abiertas: new Set(), resaltada: null, verTodas: false,
+};
+
+/* ------------------------------------------------------------------ */
+/* Formulario                                                          */
+/* ------------------------------------------------------------------ */
+function botonesOpcion(cont, opciones, actual, multiple, alCambiar) {
+  cont.innerHTML = "";
+  for (const o of opciones) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "opcion"; b.textContent = o.nombre;
+    const activo = multiple ? actual.includes(o.id) : actual === o.id;
+    b.setAttribute("aria-pressed", activo);
+    b.addEventListener("click", () => alCambiar(o.id));
+    cont.appendChild(b);
+  }
+}
+
+function pintarFormulario() {
+  const e = estado.esc;
+  const cont = $("#entornos"); cont.innerHTML = "";
+  for (const en of [...ENTORNOS, { id: "personalizado", nombre: "Personalizado" }]) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "entorno"; b.setAttribute("aria-pressed", e.entorno === en.id);
+    b.innerHTML = `<b>${esc(en.nombre)}</b><span>${en.o2 != null ? `${fmt(en.o2)} % O₂, ${fmt(en.p / A_KPA.psi)} psi` : "Tus propios valores"}</span>`;
+    b.addEventListener("click", () => elegirEntorno(en.id));
+    cont.appendChild(b);
+  }
+  const en = ENTORNOS.find((x) => x.id === e.entorno);
+  const nota = $("#nota-entorno");
+  nota.hidden = !(en && en.nota); nota.textContent = en ? en.nota : "";
+
+  $("#o2-num").value = e.o2; $("#o2-rango").value = e.o2;
+  $("#p-unidad").value = e.unidad;
+  $("#p-num").value = +(e.p / A_KPA[e.unidad]).toFixed(e.unidad === "atm" ? 3 : 1);
+  $("#p-rango").value = Math.min(200, Math.max(10, e.p));
+
+  const cambiar = (campo) => (id) => { estado.esc[campo] = id; marcarPersonalizado(); actualizar(); };
+  botonesOpcion($("#op-material"), MATERIALES, e.material, false, cambiar("material"));
+  botonesOpcion($("#op-gravedad"), GRAVEDADES, e.gravedad, false, cambiar("gravedad"));
+  botonesOpcion($("#op-flujo"), FLUJOS, e.flujo, false, cambiar("flujo"));
+  botonesOpcion($("#op-interes"), INTERESES, e.intereses, true, (id) => {
+    const s = new Set(estado.esc.intereses); s.has(id) ? s.delete(id) : s.add(id);
+    estado.esc.intereses = [...s]; actualizar();
+  });
+}
+
+function pintarMarcas() {
+  const marcas = [["Tierra", 21], ["Base lunar", 30], ["Traje", 100]];
+  $("#marcas-o2").innerHTML = marcas.map(([n, v], i) => `<span class="${i === 1 ? "abajo" : i === 2 ? "fin" : ""}" style="left:${v}%">${n}</span>`).join("");
+  const mp = [["Traje", 29.6], ["Base lunar", 70.3], ["Tierra", 101.3]];
+  $("#marcas-p").innerHTML = mp.map(([n, v]) => `<span style="left:${((v - 10) / 190) * 100}%">${n}</span>`).join("");
+}
+
+function elegirEntorno(id) {
+  estado.esc.entorno = id;
+  const en = ENTORNOS.find((x) => x.id === id);
+  if (en) Object.assign(estado.esc, { o2: en.o2, p: en.p, gravedad: en.gravedad, flujo: en.flujo });
+  actualizar();
+}
+function marcarPersonalizado() {
+  const en = ENTORNOS.find((x) => x.id === estado.esc.entorno);
+  const e = estado.esc;
+  if (en && (en.o2 !== e.o2 || Math.abs(en.p - e.p) > 0.05 || en.gravedad !== e.gravedad || en.flujo !== e.flujo)) e.entorno = "personalizado";
+}
+
+function enlazarControles() {
+  const fijarO2 = (v) => { const n = num(v); if (n == null) return; estado.esc.o2 = Math.min(100, Math.max(0, n)); marcarPersonalizado(); actualizar(); };
+  $("#o2-num").addEventListener("change", (ev) => fijarO2(ev.target.value));
+  $("#o2-rango").addEventListener("input", (ev) => fijarO2(ev.target.value));
+  $("#p-num").addEventListener("change", (ev) => {
+    const n = num(ev.target.value); if (n == null || n <= 0) return;
+    estado.esc.p = n * A_KPA[estado.esc.unidad]; marcarPersonalizado(); actualizar();
+  });
+  $("#p-rango").addEventListener("input", (ev) => { estado.esc.p = Number(ev.target.value); marcarPersonalizado(); actualizar(); });
+  $("#p-unidad").addEventListener("change", (ev) => { estado.esc.unidad = ev.target.value; actualizar(); });
+  $("#examinar").addEventListener("click", () => examinar(true));
+
+  const cont = $("#pesos");
+  cont.innerHTML = Object.keys(PESOS_INICIALES).map((k) =>
+    `<label for="peso-${k}">${NOMBRE_COMP[k]}</label><input type="number" id="peso-${k}" min="0" max="100" step="5" value="${estado.pesos[k]}">`).join("");
+  for (const k of Object.keys(PESOS_INICIALES)) {
+    $("#peso-" + k).addEventListener("change", (ev) => { estado.pesos[k] = Math.max(0, num(ev.target.value) ?? 0); actualizar(); });
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Frase del escenario                                                 */
+/* ------------------------------------------------------------------ */
+function descripcion(e) {
+  const mat = MATERIALES.find((m) => m.id === e.material).nombre;
+  const grav = { micro: "microgravedad", lunar: "gravedad lunar", marciana: "gravedad marciana", terrestre: "gravedad terrestre" }[e.gravedad];
+  const flujo = FLUJOS.find((f) => f.id === e.flujo).nombre;
+  const pUnidad = e.unidad === "kPa" ? `${fmt(e.p)} kPa` : `${fmt(e.p / A_KPA[e.unidad], e.unidad === "atm" ? 2 : 1)} ${e.unidad}`;
+  return { mat, grav, flujo, pUnidad };
+}
+function pintarFrase() {
+  const d = descripcion(estado.esc);
+  $("#frase").innerHTML = `<span>Vas a examinar</span>${esc(d.mat)} a ${fmt(estado.esc.o2)} % de oxígeno y ${esc(d.pUnidad)}, en ${d.grav}, con ${esc(d.flujo.toLowerCase())}`;
+}
+
+/* ------------------------------------------------------------------ */
+/* Mapa                                                                */
+/* ------------------------------------------------------------------ */
+const M = { x0: 64, x1: 740, y0: 24, y1: 372, pMin: 10, pMax: 5000 };
+const sx = (o2) => M.x0 + (o2 / 100) * (M.x1 - M.x0);
+const sy = (p) => {
+  const c = Math.min(M.pMax, Math.max(M.pMin, p));
+  return M.y1 - (Math.log10(c) - Math.log10(M.pMin)) / (Math.log10(M.pMax) - Math.log10(M.pMin)) * (M.y1 - M.y0);
+};
+
+function pintarMapa() {
+  const svg = $("#mapa");
+  const res = estado.resultados;
+  const puntajes = new Map(res ? res.map((r, i) => [r.inv.id, { orden: r.orden, rango: i }]) : []);
+  let h = "";
+  for (let o = 0; o <= 100; o += 10) {
+    h += `<line class="rejilla" x1="${sx(o)}" y1="${M.y0}" x2="${sx(o)}" y2="${M.y1}"/>`;
+    h += `<text x="${sx(o)}" y="${M.y1 + 16}" text-anchor="middle">${o}</text>`;
+  }
+  for (const p of [10, 20, 50, 100, 200, 500, 1000, 2000, 5000]) {
+    h += `<line class="rejilla" x1="${M.x0}" y1="${sy(p)}" x2="${M.x1}" y2="${sy(p)}"/>`;
+    h += `<text x="${M.x0 - 8}" y="${sy(p) + 4}" text-anchor="end">${p.toLocaleString("es-CO")}</text>`;
+  }
+  h += `<text class="eje-titulo" x="${(M.x0 + M.x1) / 2}" y="${M.y1 + 36}" text-anchor="middle">Oxígeno (%)</text>`;
+  h += `<text class="eje-titulo" transform="translate(16 ${(M.y0 + M.y1) / 2}) rotate(-90)" text-anchor="middle">Presión (kPa, escala logarítmica)</text>`;
+
+  const soloUna = [], ninguna = [];
+  let formas = "", etiquetas = "";
+  for (const inv of estado.fichas) {
+    const pr = puntajes.get(inv.id);
+    const clase = !res ? "" : pr && pr.rango < 5 ? "destacada" : pr && pr.orden < 0.35 ? "tenue" : "";
+    const attrs = `class="inv ${clase}" tabindex="0" data-id="${esc(inv.id)}" aria-label="${esc(inv.nombre)}"`;
+    if (inv.o2 && inv.p) {
+      const x = sx(inv.o2.min), w = Math.max(8, sx(inv.o2.max) - x);
+      const y = sy(inv.p.max), hh = Math.max(8, sy(inv.p.min) - y);
+      if (inv.o2.min === inv.o2.max && inv.p.min === inv.p.max)
+        formas += `<g ${attrs}><circle class="punto" cx="${sx(inv.o2.min)}" cy="${sy(inv.p.min)}" r="6"/></g>`;
+      else formas += `<g ${attrs}><rect x="${w === 8 ? x - 4 : x}" y="${hh === 8 ? y - 4 : y}" width="${w}" height="${hh}" rx="3"/></g>`;
+      if (clase === "destacada") etiquetas += `<text class="etq-inv" x="${sx(inv.o2.max) + 6}" y="${sy(inv.p.max) + 4}">${esc(inv.nombre)}</text>`;
+    } else if (inv.o2) {
+      soloUna.push(inv);
+      formas += `<g ${attrs}><rect class="banda" x="${sx(inv.o2.min) - 3}" y="${M.y0}" width="${Math.max(6, sx(inv.o2.max) - sx(inv.o2.min) + 6)}" height="${M.y1 - M.y0}"/></g>`;
+    } else if (inv.p) {
+      soloUna.push(inv);
+      formas += `<g ${attrs}><rect class="banda" x="${M.x0}" y="${sy(inv.p.max) - 3}" width="${M.x1 - M.x0}" height="${Math.max(6, sy(inv.p.min) - sy(inv.p.max) + 6)}"/></g>`;
+    } else ninguna.push(inv);
+  }
+  h += formas + etiquetas;
+
+  const grupos = new Map();
+  for (const en of ENTORNOS) {
+    if (en.id === "marte") continue;                 // valores supuestos: no se dibuja
+    const clave = en.o2 + "-" + en.p;
+    if (!grupos.has(clave)) grupos.set(clave, { o2: en.o2, p: en.p, nombres: [] });
+    grupos.get(clave).nombres.push(en.nombre);
+  }
+  for (const g of grupos.values()) {
+    const x = sx(g.o2), y = sy(g.p);
+    const ancla = g.o2 > 85 ? "end" : "start", dx = g.o2 > 85 ? -10 : 10;
+    h += `<g class="ref"><path d="M${x} ${y - 6} L${x + 6} ${y} L${x} ${y + 6} L${x - 6} ${y} Z"/><text x="${x + dx}" y="${y - 8}" text-anchor="${ancla}">${esc(g.nombres.join(", "))}</text></g>`;
+  }
+
+  const e = estado.escExaminado || estado.esc, ex = sx(e.o2), ey = sy(e.p);
+  h += `<defs><radialGradient id="llama-esferica"><stop offset="0" stop-color="#ffffff"/><stop offset="0.25" stop-color="#ffd3e8"/><stop offset="0.55" style="stop-color:var(--llama);stop-opacity:0.85"/><stop offset="1" style="stop-color:var(--llama);stop-opacity:0"/></radialGradient></defs>`;
+  h += `<circle cx="${ex}" cy="${ey}" r="22" fill="url(#llama-esferica)" aria-hidden="true"/>`;
+  h += `<circle cx="${ex}" cy="${ey}" r="4" style="fill:#fff;stroke:var(--llama);stroke-width:2"><title>Tu escenario</title></circle>`;
+  svg.innerHTML = h;
+
+  const partes = [];
+  if (soloUna.length) partes.push(`${soloUna.length} con solo una de las dos variables (bandas)`);
+  if (ninguna.length) partes.push(`${ninguna.length} sin datos de oxígeno ni presión, que no aparecen en el mapa: ${ninguna.map((i) => i.nombre).join(", ")}`);
+  $("#sin-mapa").textContent = partes.length ? "De las " + estado.fichas.length + " investigaciones, " + partes.join("; ") + "." : "";
+
+  svg.querySelectorAll(".inv").forEach((g) => {
+    const inv = estado.fichas.find((i) => i.id === g.dataset.id);
+    const info = () => {
+      const pr = puntajes.get(inv.id);
+      return `<b>${esc(inv.nombre)}</b><br>O₂: ${inv.o2 ? fmt(inv.o2.min) + " a " + fmt(inv.o2.max) + " %" : "sin dato"}<br>Presión: ${inv.p ? fmt(inv.p.min) + " a " + fmt(inv.p.max) + " kPa" : "sin dato"}${pr ? "<br>Relevancia: " + fmt(pr.orden * 100, 0) : ""}`;
+    };
+    g.addEventListener("mousemove", (ev) => mostrarTooltip(info(), ev.clientX, ev.clientY));
+    g.addEventListener("mouseleave", ocultarTooltip);
+    g.addEventListener("focus", () => { const r = g.getBoundingClientRect(); mostrarTooltip(info(), r.right, r.top); });
+    g.addEventListener("blur", ocultarTooltip);
+    const ir = () => irAInvestigacion(inv.id);
+    g.addEventListener("click", ir);
+    g.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); ir(); } });
+  });
+}
+function mostrarTooltip(html, x, y) {
+  const t = $("#tooltip"); t.innerHTML = html; t.style.opacity = 1;
+  const w = t.offsetWidth; t.style.left = Math.min(window.innerWidth - w - 8, x + 12) + "px"; t.style.top = (y + 12) + "px";
+}
+function ocultarTooltip() { $("#tooltip").style.opacity = 0; }
+
+function irAInvestigacion(id) {
+  if (!estado.resultados) return;
+  const r = estado.resultados.find((x) => x.inv.id === id);
+  if (r && nivelDe(r.orden).id === "baja") estado.verTodas = true;
+  estado.resaltada = id; estado.abiertas.add(id);
+  pintarResultados();
+  const el = document.getElementById("item-" + id);
+  if (el) el.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
+}
+
+/* ------------------------------------------------------------------ */
+/* Resultados                                                          */
+/* ------------------------------------------------------------------ */
+function examinar(irACobertura = true) {
+  const e = estado.esc;
+  estado.resultados = estado.fichas.map((inv) => evaluar(inv, e, estado.pesos)).sort((a, b) => b.orden - a.orden);
+  estado.vacios = detectarVacios(estado.fichas, e);
+  estado.escExaminado = JSON.parse(JSON.stringify(e));
+  estado.examinado = JSON.stringify([e, estado.pesos]);
+  estado.resaltada = null;
+  pintarResultados(); pintarMapa(); marcarDesactualizado();
+  const c = $("#contador-cobertura");
+  c.hidden = false; c.textContent = estado.resultados.filter((r) => r.orden >= 0.5).length;
+  c.setAttribute("aria-label", c.textContent + " investigaciones relevantes");
+  if (irACobertura) mostrarPestana("cobertura", true);
+  pintarFuego(irACobertura);
+}
+
+const NIVELES = [
+  { id: "alta", nombre: "Relevancia alta", desc: "70 o más", min: 0.7 },
+  { id: "media", nombre: "Relevancia media", desc: "50 a 69", min: 0.5 },
+  { id: "baja", nombre: "Relevancia baja", desc: "menos de 50", min: -1 },
+];
+const nivelDe = (orden) => NIVELES.find((n) => orden >= n.min);
+
+function insigniaCalidad(inv) {
+  if (inv.verificado) return `<span class="insignia v">Verificada por el equipo</span>`;
+  if (/^IA/i.test(inv.metodo)) return `<span class="insignia a">Extraída con IA, sin verificar</span>`;
+  if (inv.metodo === "reglas") return `<span class="insignia a">Extraída con reglas, sin verificar</span>`;
+  return `<span class="insignia g">Origen: ${esc(inv.metodo)}</span>`;
+}
+
+function textoComp(k, v) {
+  if (v === undefined) return "";
+  if (v === null) return `<span class="comp nulo">${NOMBRE_COMP[k]}: sin dato</span>`;
+  return `<span class="comp ${v >= 0.75 ? "alto" : ""}">${NOMBRE_COMP[k]} ${fmt(v, 2)}</span>`;
+}
+
+function rangoTxt(r, u) { return r ? (r.min === r.max ? `${fmt(r.min)} ${u}` : `${fmt(r.min)} a ${fmt(r.max)} ${u}`) : "Sin dato"; }
+function listaTxt(l) { return l && l.length ? l.map(esc).join(", ") : "Sin dato"; }
+
+function fichaHTML(inv) {
+  const evid = Object.entries(inv.evidencia || {}).filter(([, f]) => f);
+  return `<div class="ficha">
+    <dl>
+      <dt>Tipo</dt><dd>${inv.tierra ? "Estudio en tierra" : "Experimento en microgravedad"}${inv.plataforma ? ", " + esc(inv.plataforma) : ""}</dd>
+      <dt>Familia de hardware</dt><dd>${esc(inv.familia)}${inv.hardware ? `<br><small>${esc(inv.hardware)}</small>` : ""}</dd>
+      ${inv.fechas ? `<dt>Fechas</dt><dd>${esc(inv.fechas)}</dd>` : ""}
+      <dt>Materiales</dt><dd>${listaTxt(inv.materiales)}${inv.categorias.size ? ` <small>(${[...inv.categorias].map((c) => NOMBRE_CATEGORIA[c]).join(", ")})</small>` : ""}</dd>
+      <dt>Oxígeno</dt><dd>${rangoTxt(inv.o2, "%")}</dd>
+      <dt>Presión</dt><dd>${rangoTxt(inv.p, "kPa")}</dd>
+      <dt>Flujo de aire</dt><dd>${rangoTxt(inv.flujo, "cm/s")}${inv.config.length ? ", " + inv.config.map((x) => esc(etq(x))).join(", ") : ""}</dd>
+      <dt>Diluyentes</dt><dd>${listaTxt(inv.diluyentes)}</dd>
+      <dt>Función de seguridad</dt><dd>${listaTxt(inv.funciones.map(etq))}</dd>
+      ${inv.entornos.length ? `<dt>Entornos relevantes</dt><dd>${listaTxt(inv.entornos.map(etq))}</dd>` : ""}
+      ${inv.mediciones.length ? `<dt>Mediciones</dt><dd>${listaTxt(inv.mediciones)}</dd>` : ""}
+    </dl>
+    ${inv.hallazgos ? `<h5>Hallazgos clave</h5><p>${esc(inv.hallazgos)}</p>` : ""}
+    ${inv.objetivos ? `<h5>Objetivos según PSI (texto original)</h5><p class="texto-psi">${esc(inv.objetivos.slice(0, 700))}${inv.objetivos.length > 700 ? "…" : ""}</p>` : ""}
+    ${evid.length ? `<h5>Evidencia citada del texto de PSI</h5><ul>${evid.map(([k, f]) => `<li><b>${esc(k)}</b>: ${esc(f)} ${inv.evidenciaOk[k] === true ? "✓ encontrada en el texto" : inv.evidenciaOk[k] === false ? "✗ no encontrada en el texto" : ""}</li>`).join("")}</ul>` : ""}
+    ${inv.advertencias.length ? `<h5>Advertencias</h5><ul>${inv.advertencias.map((a) => `<li>${esc(a)}</li>`).join("")}</ul>` : ""}
+    <p><a href="https://psi.nasa.gov/physci/repo/search?q=${encodeURIComponent(inv.sigla || inv.id)}" target="_blank" rel="noopener">Buscar ${esc(inv.id)} en PSI</a></p>
+  </div>`;
+}
+
+function resumenHTML() {
+  const e = estado.escExaminado, d = descripcion(e), res = estado.resultados;
+  const conteo = Object.fromEntries(NIVELES.map((n) => [n.id, res.filter((r) => nivelDe(r.orden).id === n.id).length]));
+  const relevantes = conteo.alta + conteo.media;
+  const pKpa = e.unidad === "kPa" ? "" : `<small>${fmt(e.p)} kPa</small>`;
+  const intereses = e.intereses.length ? e.intereses.map((x) => INTERESES.find((i) => i.id === x).nombre).join(", ") : "Todos";
+  const pct = (n) => (n / res.length * 100).toFixed(1);
+  return `<div class="bloque">
+    <div class="resumen-cab">
+      <div><h2>Escenario examinado</h2><p>${esc(ENTORNOS.find((x) => x.id === e.entorno)?.nombre || "Escenario personalizado")}</p></div>
+      <button class="boton-sec" type="button" data-ir="experimento">Editar escenario</button>
+    </div>
+    <dl class="variables">
+      <div class="variable"><dt>Material</dt><dd>${esc(d.mat)}</dd></div>
+      <div class="variable"><dt>Oxígeno</dt><dd>${fmt(e.o2)} %</dd></div>
+      <div class="variable"><dt>Presión</dt><dd>${esc(d.pUnidad)}${pKpa}</dd></div>
+      <div class="variable"><dt>Gravedad</dt><dd>${esc(d.grav.replace("gravedad ", "").replace(/^./, (c) => c.toUpperCase()))}</dd></div>
+      <div class="variable"><dt>Flujo de aire</dt><dd>${esc(d.flujo)}</dd></div>
+      <div class="variable"><dt>Interés</dt><dd>${esc(intereses)}</dd></div>
+    </dl>
+    <div class="distribucion">
+      <div class="cifra-principal">
+        <b>${relevantes}<span> de ${res.length}</span></b>
+        <p>investigaciones con relevancia de 50 o más${estado.vacios.total ? `, y ${estado.vacios.total} ${estado.vacios.total === 1 ? "vacío" : "vacíos"} de información` : ""}</p>
+      </div>
+      <div>
+        <div class="barra-niveles" role="img" aria-label="Alta ${conteo.alta}, media ${conteo.media}, baja ${conteo.baja}">
+          <span class="n-alta" style="width:${pct(conteo.alta)}%"></span><span class="n-media" style="width:${pct(conteo.media)}%"></span><span class="n-baja" style="width:${pct(conteo.baja)}%"></span>
+        </div>
+        <div class="leyenda-niveles">
+          <span><i class="n-alta"></i>Alta <b>${conteo.alta}</b></span>
+          <span><i class="n-media"></i>Media <b>${conteo.media}</b></span>
+          <span><i class="n-baja"></i>Baja <b>${conteo.baja}</b></span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function vaciosHTML() {
+  const v = estado.vacios;
+  const chips = (l) => l.length ? l.map((n) => `<span class="chip">${esc(n)}</span>`).join("") : `<span class="chip vacio">Ninguna</span>`;
+  let h = `<div class="bloque"><div class="vacios-cab"><h3>Vacíos de información</h3>
+    <p class="ayuda" style="margin:0">Partes de tu escenario que las fichas no cubren.</p></div>`;
+  if (v.total === 0) h += `<div class="ok-cobertura">✓ Todas las variables de tu escenario tienen al menos una investigación cercana.</div>`;
+  if (v.combinaciones.length) {
+    h += `<div class="grupo-vacios"><h4>Combinaciones sin estudiar <span class="contador">${v.combinaciones.length}</span></h4><div class="tarjetas-vacio">`;
+    h += v.combinaciones.map((c) => `<div class="vacio-tarjeta"><h5>${esc(c.titulo)}</h5>
+      <div class="lados"><div><div class="lado-titulo">${esc(c.a.titulo)}</div><div class="chips">${chips(c.a.lista)}</div></div>
+      <div><div class="lado-titulo">${esc(c.b.titulo)}</div><div class="chips">${chips(c.b.lista)}</div></div></div>
+      <div class="sin-cruce">Ninguna investigación reúne las dos condiciones.</div></div>`).join("");
+    h += `</div></div>`;
+  }
+  if (v.variables.length || v.gravedad) {
+    const items = [...v.variables, ...(v.gravedad ? [v.gravedad] : [])];
+    h += `<div class="grupo-vacios"><h4>Condiciones sin datos <span class="contador">${items.length}</span></h4><div class="tarjetas-vacio">`;
+    h += items.map((x) => `<div class="vacio-tarjeta"><h5>${esc(x.titulo)}</h5><p>${esc(x.texto)}</p></div>`).join("");
+    h += `</div></div>`;
+  }
+  h += `<div class="grupo-vacios morado"><h4>Completitud de las fichas</h4>
+    <p class="ayuda">Cuántas de las ${estado.fichas.length} fichas tienen cada dato. Un dato faltante puede ser un vacío del texto público de PSI o de la extracción.</p><div class="calidad">`;
+  h += v.calidad.map((c) => `<div class="calidad-fila"><span class="nombre">${esc(c.nombre)}</span>
+      <div class="calidad-barra" role="img" aria-label="${c.con} de ${c.total}"><span style="width:${(c.con / c.total * 100).toFixed(0)}%"></span></div>
+      <span class="cifra">${c.con} de ${c.total}</span>
+      ${c.sin.length ? `<details><summary>Ver las ${c.sin.length} sin dato</summary>${c.sin.map(esc).join(", ")}</details>` : ""}</div>`).join("");
+  h += `</div></div></div>`;
+  return h;
+}
+
+function itemHTML(r, pos) {
+  const inv = r.inv, abierta = estado.abiertas.has(inv.id), nivel = nivelDe(r.orden).id;
+  return `<li class="item nivel-${nivel} ${estado.resaltada === inv.id ? "resaltado" : ""}" id="item-${esc(inv.id)}">
+      <div class="item-cab">
+        <span class="rango" aria-label="Posición">${pos}</span>
+        <div>
+          <h4>${esc(inv.nombre)}</h4>
+          <p class="titulo">${esc(inv.titulo)}</p>
+          <div class="desglose">${Object.keys(NOMBRE_COMP).map((k) => textoComp(k, r.comp[k])).join("")}</div>
+          <div class="insignias">${insigniaCalidad(inv)}<span class="insignia g">${esc(inv.familia)}</span></div>
+        </div>
+        <div class="puntaje">
+          <b>${fmt(r.orden * 100, 0)}</b>
+          <small>relevancia, datos ${fmt(r.cobertura * 100, 0)} %</small>
+          <div class="medidor" aria-hidden="true"><span style="width:${(r.orden * 100).toFixed(0)}%"></span></div>
+        </div>
+      </div>
+      <div class="item-acciones">
+        <button class="enlace" type="button" data-ficha="${esc(inv.id)}" aria-expanded="${abierta}">${abierta ? "Ocultar ficha" : "Ver ficha"}</button>
+        <label class="comparar-check"><input type="checkbox" data-comparar="${esc(inv.id)}" ${estado.comparar.has(inv.id) ? "checked" : ""}> Comparar</label>
+      </div>
+      ${abierta ? fichaHTML(inv) : ""}
+    </li>`;
+}
+
+function pintarResultados() {
+  const res = estado.resultados;
+  if (!res) return;
+  $("#resumen-escenario").innerHTML = resumenHTML();
+  $("#zona-vacios").innerHTML = vaciosHTML();
+
+  let pos = 0, grupos = "";
+  for (const n of NIVELES) {
+    let lista = res.filter((r) => nivelDe(r.orden).id === n.id);
+    if (!lista.length) continue;
+    const total = lista.length;
+    const inicio = pos;
+    if (n.id === "baja" && !estado.verTodas) lista = lista.slice(0, 3);
+    grupos += `<section class="grupo-nivel" aria-label="${n.nombre}">
+      <div class="grupo-nivel-cab"><h4><span class="marca-nivel n-${n.id}"></span>${n.nombre}</h4><p>${n.desc}, ${total} ${total === 1 ? "investigación" : "investigaciones"}</p></div>
+      <ol class="lista" start="${inicio + 1}">${lista.map((r, i) => itemHTML(r, inicio + i + 1)).join("")}</ol>
+      ${n.id === "baja" && total > 3 ? `<p style="margin:10px 0 0"><button class="enlace" type="button" id="ver-todas">${estado.verTodas ? "Mostrar solo 3 de relevancia baja" : `Mostrar las ${total} de relevancia baja`}</button></p>` : ""}
+    </section>`;
+    pos += total;
+  }
+
+  const zona = $("#zona-resultados");
+  zona.innerHTML = `<div class="bloque">
+      <div class="barra-lista">
+        <div><h3>Investigaciones por relevancia</h3><p class="ayuda" style="margin:0">Agrupadas por nivel. El desglose muestra la cercanía en cada variable.</p></div>
+        <div class="acciones"><button class="boton-sec" type="button" id="descargar-csv">Descargar datos (CSV)</button></div>
+      </div>
+      ${grupos}
+    </div>`;
+
+  document.querySelectorAll("[data-ir]").forEach((b) => b.addEventListener("click", () => mostrarPestana(b.dataset.ir, true)));
+  zona.querySelectorAll("[data-ficha]").forEach((b) => b.addEventListener("click", () => {
+    const id = b.dataset.ficha; estado.abiertas.has(id) ? estado.abiertas.delete(id) : estado.abiertas.add(id); pintarResultados();
+  }));
+  zona.querySelectorAll("[data-comparar]").forEach((c) => c.addEventListener("change", () => {
+    const id = c.dataset.comparar; c.checked ? estado.comparar.add(id) : estado.comparar.delete(id); pintarBarraComparar();
+  }));
+  const vt = $("#ver-todas"); if (vt) vt.addEventListener("click", () => { estado.verTodas = !estado.verTodas; pintarResultados(); });
+  $("#descargar-csv").addEventListener("click", descargarCSV);
+}
+
+function marcarDesactualizado() {
+  const pend = estado.examinado && estado.examinado !== JSON.stringify([estado.esc, estado.pesos]);
+  $("#desactualizado").classList.toggle("visible", !!pend);
+  $("#examinar").dataset.pendiente = !!pend;
+}
+
+/* ------------------------------------------------------------------ */
+/* Comparación                                                         */
+/* ------------------------------------------------------------------ */
+function pintarBarraComparar() {
+  const n = estado.comparar.size;
+  $("#barra-comparar").classList.toggle("visible", n > 0);
+  $("#texto-comparar").textContent = n === 1 ? "1 investigación seleccionada" : `${n} investigaciones seleccionadas`;
+  $("#abrir-comparar").disabled = n < 2;
+  $("#abrir-comparar").style.opacity = n < 2 ? 0.5 : 1;
+}
+function abrirComparar() {
+  const invs = estado.fichas.filter((i) => estado.comparar.has(i.id));
+  const filas = [
+    ["Tipo", (i) => i.tierra ? "Estudio en tierra" : "Microgravedad"],
+    ["Familia de hardware", (i) => i.familia],
+    ["Categoría de material", (i) => [...i.categorias].map((c) => NOMBRE_CATEGORIA[c]).sort().join(", ") || "Sin dato"],
+    ["Materiales", (i) => i.materiales.join(", ") || "Sin dato"],
+    ["Oxígeno", (i) => rangoTxt(i.o2, "%")],
+    ["Presión", (i) => rangoTxt(i.p, "kPa")],
+    ["Flujo", (i) => rangoTxt(i.flujo, "cm/s")],
+    ["Configuración de flujo", (i) => i.config.map(etq).join(", ") || "Sin dato"],
+    ["Diluyentes", (i) => i.diluyentes.join(", ") || "Sin dato"],
+    ["Función de seguridad", (i) => i.funciones.map(etq).join(", ") || "Sin dato"],
+    ["Calidad del dato", (i) => i.verificado ? "Verificada" : i.metodo],
+  ];
+  let h = `<table class="comparacion"><thead><tr><th scope="col">Campo</th>${invs.map((i) => `<th scope="col">${esc(i.nombre)}</th>`).join("")}</tr></thead><tbody>`;
+  for (const [nombre, fn] of filas) {
+    const vals = invs.map(fn);
+    const iguales = vals.every((v) => v === vals[0]) && vals[0] !== "Sin dato";
+    h += `<tr><th scope="row">${nombre}</th>${vals.map((v) => `<td class="${iguales ? "igual" : ""}">${esc(v)}</td>`).join("")}</tr>`;
+  }
+  h += `</tbody></table><p class="ayuda" style="padding:10px 14px">Las celdas en verde son iguales en todas las investigaciones seleccionadas.</p>`;
+  $("#tabla-comparar").innerHTML = h;
+  $("#dialogo-comparar").showModal();
+}
+
+/* ------------------------------------------------------------------ */
+/* Exportación                                                         */
+/* ------------------------------------------------------------------ */
+function descargarCSV() {
+  const e = estado.esc;
+  const cab = ["posicion", "id_psi", "nombre", "relevancia", "cobertura_datos", ...Object.keys(NOMBRE_COMP).map((k) => "cercania_" + k),
+    "tipo", "familia_hardware", "materiales", "categorias", "o2_min_pct", "o2_max_pct", "presion_min_kpa", "presion_max_kpa",
+    "flujo_min_cm_s", "flujo_max_cm_s", "funcion_seguridad", "metodo_extraccion", "verificado_por_humano",
+    "escenario_o2_pct", "escenario_presion_kpa", "escenario_material", "escenario_gravedad", "escenario_flujo"];
+  const c = (v) => { const s = v == null ? "" : String(v); return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  const filas = estado.resultados.map((r, i) => {
+    const inv = r.inv;
+    return [i + 1, inv.id, inv.nombre, r.orden.toFixed(3), r.cobertura.toFixed(2),
+      ...Object.keys(NOMBRE_COMP).map((k) => r.comp[k] == null ? "" : r.comp[k].toFixed(3)),
+      inv.tierra ? "tierra" : "microgravedad", inv.familia, inv.materiales.join("; "), [...inv.categorias].join("; "),
+      inv.o2?.min, inv.o2?.max, inv.p?.min, inv.p?.max, inv.flujo?.min, inv.flujo?.max,
+      inv.funciones.join("; "), inv.metodo, inv.verificado, e.o2, e.p.toFixed(2), e.material, e.gravedad, e.flujo].map(c).join(",");
+  });
+  const blob = new Blob(["\ufeff" + [cab.join(","), ...filas].join("\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = `relevancia_${e.entorno}_${e.o2}O2_${Math.round(e.p)}kPa.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+/* ------------------------------------------------------------------ */
+/* Carga de datos                                                      */
+/* ------------------------------------------------------------------ */
+function usarFichas(lista, fuente) {
+  const validas = (Array.isArray(lista) ? lista : []).filter((f) => f && f.id_psi);
+  if (!validas.length) throw new Error("El archivo no contiene fichas con id_psi.");
+  estado.fichas = validas.map(normalizar);
+  estado.fuente = fuente; estado.comparar.clear(); estado.abiertas.clear();
+  $("#fuente-texto").textContent = `${fuente}, ${estado.fichas.length} investigaciones`;
+  pintarBarraComparar();
+  if (estado.resultados) examinar(false); else pintarMapa();
+}
+
+async function cargarInicial() {
+  if (location.protocol === "file:") {        // abierto desde disco: no hay servidor
+    usarFichas(FICHAS_EMBEBIDAS, `Fichas de ejemplo (${FECHA_EMBEBIDAS})`); return;
+  }
+  const intentos = [
+    ["datos/fichas_curadas.json", "Fichas curadas"],
+    ["datos/fichas_caracterizadas_ia.json", "Fichas con IA"],
+    ["datos/fichas_caracterizadas_reglas.json", "Fichas con reglas"],
+  ];
+  for (const [ruta, nombre] of intentos) {
+    try {
+      const r = await fetch(ruta, { cache: "no-store" });
+      if (!r.ok) continue;
+      usarFichas(await r.json(), nombre); return;
+    } catch (_) { /* sin servidor o sin archivo: se prueba el siguiente */ }
+  }
+  usarFichas(FICHAS_EMBEBIDAS, `Fichas de ejemplo (${FECHA_EMBEBIDAS})`);
+}
+
+$("#boton-cargar").addEventListener("click", () => $("#archivo-fichas").click());
+$("#archivo-fichas").addEventListener("change", async (ev) => {
+  const f = ev.target.files[0]; if (!f) return;
+  try { usarFichas(JSON.parse(await f.text()), f.name); }
+  catch (err) { $("#fuente-texto").textContent = `No se pudo leer ${f.name}: ${err.message}`; }
+  ev.target.value = "";
+});
+$("#abrir-comparar").addEventListener("click", abrirComparar);
+$("#limpiar-comparar").addEventListener("click", () => { estado.comparar.clear(); pintarBarraComparar(); if (estado.resultados) pintarResultados(); });
+$("#cerrar-comparar").addEventListener("click", () => $("#dialogo-comparar").close());
+
+/* ------------------------------------------------------------------ */
+/* Favorabilidad para un incendio (reglas basadas en los experimentos) */
+/* ------------------------------------------------------------------ */
+const REF_ISS = { o2: 21, p: 101.3, gravedad: "micro", flujo: "suave", material: "tela" };
+const LIMITE_O2 = { micro: 15, lunar: 15, marciana: 15, terrestre: 18 };
+const NIVELES_FUEGO = [
+  { id: "menor", nombre: "Menor que la ISS", max: -1 },
+  { id: "similar", nombre: "Similar a la ISS", max: 1 },
+  { id: "mayor", nombre: "Mayor que la ISS", max: 3 },
+  { id: "mucho", nombre: "Mucho mayor que la ISS", max: Infinity },
+];
+const PUNTOS_MATERIAL = { tela: 0, espuma: 0.5, plastico: -0.5, liquido: 0, gas: 0.5, ignifugo: -1.5 };
+const NOMBRE_MAT_FUEGO = { tela: "tela", espuma: "espuma", plastico: "plástico", liquido: "líquido", gas: "gas", ignifugo: "material ignífugo" };
+const REDUCIR_MOVIMIENTO = matchMedia("(prefers-reduced-motion: reduce)");
+const limitar = (v, a, b) => Math.min(b, Math.max(a, v));
+const minuscula = (t) => t.charAt(0).toLowerCase() + t.slice(1);
+const signo = (d) => (d > 0 ? "+" : d < 0 ? "−" : "") + fmt(Math.abs(d), 1);
+
+function factoresFuego(e) {
+  const f = [];
+  const dO2 = e.o2 - 21;
+  f.push({ id: "oxigeno", nombre: "Oxígeno", delta: limitar(dO2 / 4, -2, 4), fuente: "BASS-II, SoFIE-MIST",
+    texto: dO2 > 0.05 ? `${fmt(dO2)} puntos por encima de la ISS: los materiales arden con más facilidad y la llama es más intensa.`
+      : dO2 < -0.05 ? `${fmt(-dO2)} puntos por debajo de la ISS: la llama es más débil.` : "Igual que en la ISS." });
+
+  const aumentada = e.o2 > 31.4 && e.p < 90;
+  f.push({ id: "presion", nombre: "Presión y oxígeno", delta: aumentada ? 1 : 0, fuente: "Atmósfera de exploración, NASA",
+    texto: aumentada ? "Más de 31,4 % de oxígeno con presión reducida: atmósfera de combustión aumentada."
+      : e.p < 90 ? "Presión reducida, pero el oxígeno no supera el umbral de 31,4 %." : "Presión similar a la de la ISS." });
+
+  let dF = 0, tF;
+  if (e.gravedad !== "micro") tF = "Con gravedad, la flotabilidad domina el flujo alrededor de la llama.";
+  else if (e.flujo === "quieto") {
+    if (e.o2 >= 30) tF = "Aire quieto, pero con oxígeno elevado la llama podría sobrevivir sin ventilación.";
+    else { dF = -1; tF = "Sin flujo la llama tiende a apagarse: en BASS se observó extinción con flujos de ~1 cm/s."; }
+  } else if (e.flujo === "suave") tF = "Ventilación suave, como en la ISS: la zona en que la llama sobrevive con menos oxígeno.";
+  else tF = "Ventilación fuerte: puede avivar la propagación o apagar llamas débiles; efecto variable.";
+  f.push({ id: "flujo", nombre: "Flujo de aire", delta: dF, fuente: "BASS", texto: tF });
+
+  const G = {
+    micro: [0, "Microgravedad, igual que en la ISS.", "SoFIE-MIST"],
+    lunar: [1, "En gravedad lunar algunos materiales arden con menos oxígeno que en la Tierra: menos pérdida de calor y flujo suficiente para renovar el oxígeno.", "FM2"],
+    marciana: [0.5, "Gravedad parcial, menos estudiada que la lunar; se espera una tendencia similar.", "FM2"],
+    terrestre: [-1, "En la Tierra el flujo por flotabilidad apaga la llama antes: el límite de oxígeno es ~18 %, frente a ~15 % en la estación.", "SoFIE-MIST"],
+  }[e.gravedad];
+  f.push({ id: "gravedad", nombre: "Gravedad", delta: G[0], fuente: G[2], texto: G[1] });
+
+  const M = {
+    tela: "Tela de algodón, como la ropa de la tripulación: es la referencia.",
+    espuma: "Las espumas tienen mucha superficie expuesta y arden con facilidad.",
+    plastico: "Los plásticos gruesos, como el PMMA, necesitan más oxígeno o tiempo para propagar la llama.",
+    liquido: "Combustible líquido: el riesgo depende de derrames y gotas, estudiados en FLEX.",
+    gas: "Una fuga de gas inflamable se enciende con facilidad.",
+    ignifugo: "En BASS, Nomex HT90-40 y Ultem no ardieron en el aire de la ISS.",
+  };
+  f.push({ id: "material", nombre: "Material", delta: PUNTOS_MATERIAL[e.material] ?? 0, fuente: "BASS, Saffire", texto: M[e.material] });
+
+  const vivo = e.o2 >= LIMITE_O2[e.gravedad];
+  let total = f.reduce((a, x) => a + x.delta, 0);
+  if (!vivo) total = Math.min(total, -1.5);
+  return { factores: f, total, vivo, nivel: NIVELES_FUEGO.find((n) => total < n.max) };
+}
+
+function posicionMedidor(t) {
+  const tramos = [[-3, -1], [-1, 1], [1, 3], [3, 5]];
+  const v = limitar(t, -3, 5);
+  for (let i = 0; i < 4; i++) {
+    const [a, b] = tramos[i];
+    if (v <= b || i === 3) return (i + (v - a) / (b - a)) * 25;
+  }
+  return 100;
+}
+
+/* --- Dibujo de la llama -------------------------------------------- */
+function paramsLlama(e) {
+  const { vivo } = factoresFuego(e);
+  const elong = { micro: 0, lunar: 0.35, marciana: 0.5, terrestre: 1 }[e.gravedad];
+  const intensidad = limitar((e.o2 - 12) / 26, 0.18, 1.12) * (1 + (PUNTOS_MATERIAL[e.material] ?? 0) * 0.12);
+  const inclinacion = e.gravedad === "micro" ? { quieto: 0, suave: 11, fuerte: 22 }[e.flujo] : { quieto: 0, suave: 4, fuerte: 9 }[e.flujo];
+  return {
+    r: vivo ? 16 + 20 * intensidad : 6,
+    elong, inclinacion,
+    hollin: limitar((e.o2 - 21) / 14 + elong * 0.45, 0, 1),
+    opacidad: vivo ? limitar(0.5 + intensidad * 0.45, 0.5, 1) : 0,
+    brasa: vivo ? 0 : 1,
+    ritmo: elong > 0 ? (e.flujo === "fuerte" ? 0.9 : 1.4) : ({ quieto: 3.6, suave: 2.4, fuerte: 1.5 }[e.flujo]),
+  };
+}
+
+function rutaLlama(cx, base, r, elong) {
+  const top = r * (1 + 2.1 * elong), k = 0.552 * r, cy = base - r;
+  const c1y = cy - k * (1 + elong), c2x = k * (1 - 0.88 * elong);
+  return `M${cx} ${base} C${cx + k} ${base} ${cx + r} ${cy + k} ${cx + r} ${cy} ` +
+    `C${cx + r} ${c1y} ${cx + c2x} ${cy - top} ${cx} ${cy - top} ` +
+    `C${cx - c2x} ${cy - top} ${cx - r} ${c1y} ${cx - r} ${cy} ` +
+    `C${cx - r} ${cy + k} ${cx - k} ${base} ${cx} ${base} Z`;
+}
+
+function mezclar(a, b, t) {
+  const h = (x) => [1, 3, 5].map((i) => parseInt(x.slice(i, i + 2), 16));
+  const A = h(a), B = h(b);
+  return "#" + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, "0")).join("");
+}
+
+function construirLlama(svg, p) {
+  svg.innerHTML = `<defs>
+      <radialGradient id="${p}-g" cx="50%" cy="66%" r="62%"><stop offset="0"/><stop offset="0.55"/><stop offset="1"/></radialGradient>
+      <radialGradient id="${p}-n" cx="50%" cy="72%" r="62%"><stop offset="0" stop-color="#FFFBEF"/><stop offset="0.55" stop-color="#FFD27A"/><stop offset="1" stop-color="#FF9A3D" stop-opacity="0"/></radialGradient>
+      <filter id="${p}-b" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="8"/></filter>
+    </defs>
+    <g class="cuerpo"><g class="respira">
+      <path class="halo" filter="url(#${p}-b)"/>
+      <path class="exterior" fill="url(#${p}-g)"/>
+      <ellipse class="base-azul" fill="#4F5BFF"/>
+      <path class="nucleo" fill="url(#${p}-n)"/>
+    </g></g>
+    <g class="brasa"><circle cx="80" cy="158" r="9" fill="#C2185B" opacity="0.25" filter="url(#${p}-b)"/><circle cx="80" cy="158" r="3.5" fill="#8A7A90"/></g>`;
+  svg._p = null;
+}
+
+function dibujarLlama(svg, P) {
+  const base = 160, q = (s) => svg.querySelector(s);
+  q(".cuerpo").setAttribute("transform", `rotate(${P.inclinacion.toFixed(2)} 80 ${base})`);
+  q(".cuerpo").setAttribute("opacity", P.opacidad.toFixed(3));
+  q(".halo").setAttribute("d", rutaLlama(80, base + P.r * 0.15, P.r * 1.32, P.elong));
+  q(".halo").setAttribute("fill", mezclar("#5A4BFF", "#D1117A", P.hollin));
+  q(".halo").setAttribute("opacity", (0.38 + 0.3 * P.hollin).toFixed(2));
+  q(".exterior").setAttribute("d", rutaLlama(80, base, P.r, P.elong));
+  const stops = svg.querySelectorAll(`radialGradient:first-of-type stop`);
+  stops[0].setAttribute("stop-color", mezclar("#ECEBFF", "#FFF4DA", P.hollin));
+  stops[1].setAttribute("stop-color", mezclar("#6E62FF", "#F2683A", P.hollin));
+  stops[2].setAttribute("stop-color", mezclar("#3A2BC8", "#D1117A", P.hollin));
+  stops[2].setAttribute("stop-opacity", "0.25");
+  q(".nucleo").setAttribute("d", rutaLlama(80, base - P.r * 0.12, P.r * 0.52, P.elong));
+  q(".nucleo").setAttribute("opacity", (P.hollin * 0.95).toFixed(3));
+  const be = q(".base-azul");
+  be.setAttribute("cx", 80); be.setAttribute("cy", base - P.r * 0.22);
+  be.setAttribute("rx", (P.r * 0.72).toFixed(2)); be.setAttribute("ry", (P.r * 0.3).toFixed(2));
+  be.setAttribute("opacity", (0.55 * P.elong).toFixed(3));
+  q(".brasa").setAttribute("opacity", P.brasa.toFixed(3));
+  const resp = q(".respira");
+  resp.style.setProperty("--ritmo", P.ritmo + "s");
+  resp.classList.toggle("parpadea", P.elong > 0.01);
+  svg._p = P;
+}
+
+function animarLlama(svg, destino, duracion = 650, desde = null) {
+  if (svg._anim) cancelAnimationFrame(svg._anim);
+  const origen = desde || svg._p;
+  if (!origen || REDUCIR_MOVIMIENTO.matches || duracion <= 0) { dibujarLlama(svg, destino); return; }
+  const claves = ["r", "elong", "inclinacion", "hollin", "opacidad", "brasa"];
+  const t0 = performance.now();
+  const paso = (t) => {
+    const k = Math.min(1, (t - t0) / duracion), e = 1 - Math.pow(1 - k, 3);
+    const P = { ...destino };
+    for (const c of claves) P[c] = origen[c] + (destino[c] - origen[c]) * e;
+    dibujarLlama(svg, P);
+    if (k < 1) svg._anim = requestAnimationFrame(paso);
+  };
+  svg._anim = requestAnimationFrame(paso);
+}
+
+/* --- Bloque en Cobertura ------------------------------------------- */
+const FUENTES_FUEGO = [
+  ["Olson, Flammability Limits from BASS-II Testing in Microgravity Compared to Normal Gravity Limits (ICES 2019)", "https://ttu-ir.tdl.org/items/1922ad9f-ef4c-4f52-96a4-980c23debe5e"],
+  ["NASA, Flammability Aspects of a Cotton-Fiberglass Fabric in Opposed and Concurrent Airflow in Microgravity (BASS)", "https://ntrs.nasa.gov/api/citations/20130012832/downloads/20130012832.pdf"],
+  ["NASA, Thickness and Fuel Preheating Effects on Material Flammability in Microgravity (BASS)", "https://ntrs.nasa.gov/api/citations/20140011099/downloads/20140011099.pdf"],
+  ["NASA ISS Science Blog, Flights of Flames for Fire Safety in Space", "https://blogs.nasa.gov/ISS_Science_Blog/?p=327"],
+  ["Berkeley Engineering (2024), resultados de SoFIE-MIST", "https://engineering.berkeley.edu/news/2024/12/nasa-funded-project-offers-new-insights-into-fire-behavior-in-space/"],
+  ["Aerospace Medicine and Human Performance (2018), atmósfera de exploración de 8,2 psia y 34 % de O₂", "https://asma.kglmeridian.com/downloadpdf/view/journals/amhp/89/9/article-p792.pdf"],
+  ["NASA (2026), Impacts of Reduced Pressure Atmospheres on ECLSS Architectures", "https://ntrs.nasa.gov/citations/20260003925"],
+  ["NASA, Flammability of Materials on the Moon (FM2)", "https://ntrs.nasa.gov/citations/20240015307"],
+  ["NASA, atmósferas de exploración y antecedente del transbordador (10,2 psia, 26,5 % de O₂)", "https://ntrs.nasa.gov/citations/20240003211"],
+];
+
+function chipInvestigacion(sigla) {
+  const inv = estado.fichas.find((i) => (i.sigla || "").toUpperCase() === sigla.toUpperCase());
+  return inv ? `<button type="button" class="chip chip-inv" data-inv="${esc(inv.id)}">${esc(sigla)}</button>` : `<span class="chip">${esc(sigla)}</span>`;
+}
+
+function condicionesTxt(e) {
+  const d = descripcion({ ...e, material: e.material === "ignifugo" ? "tela" : e.material, unidad: e.unidad || "psi" });
+  const mat = e.material === "ignifugo" ? "Material ignífugo" : d.mat;
+  return `${mat}, ${fmt(e.o2)} % O₂, ${d.pUnidad}, ${d.grav}, ${d.flujo.toLowerCase()}`;
+}
+
+function palancasPara(e) {
+  const base = factoresFuego(e);
+  const lista = [];
+  if (e.o2 > 26.5) lista.push({ id: "o2-265", titulo: "Bajar el oxígeno a 26,5 %", nota: "La atmósfera que usó el transbordador a 10,2 psi", cambio: { o2: 26.5 } });
+  if (e.o2 > 21) lista.push({ id: "o2-21", titulo: "Bajar el oxígeno a 21 %", nota: "Como en la ISS y en la Tierra", cambio: { o2: 21 } });
+  if (!["gas", "liquido"].includes(e.material)) lista.push({ id: "ignifugo", titulo: "Usar materiales ignífugos", nota: "Por ejemplo, Nomex o Ultem", cambio: { material: "ignifugo" } });
+  if (e.gravedad === "micro" && e.flujo !== "quieto") lista.push({ id: "quieto", titulo: "Reducir la ventilación al mínimo", nota: "Menos flujo de aire alrededor del material", cambio: { flujo: "quieto" } });
+  if (e.gravedad === "micro" && e.flujo === "quieto") lista.push({ id: "suave", titulo: "Comparar con ventilación suave", nota: "Lo que pasaría si se activa la ventilación", cambio: { flujo: "suave" } });
+  for (const pa of lista) {
+    const r = factoresFuego({ ...e, ...pa.cambio });
+    pa.diferencia = r.total - base.total; pa.nivel = r.nivel;
+  }
+  const mejor = lista.filter((x) => x.diferencia < -0.01).sort((a, b) => a.diferencia - b.diferencia)[0];
+  if (mejor) mejor.mejor = true;
+  return lista;
+}
+
+function recomendacionesPara(e) {
+  const r = { prevencion: [], deteccion: [], supresion: [] };
+  const f = factoresFuego(e);
+  if (e.o2 > 21) r.prevencion.push({ clave: true, titulo: "Prueba los materiales con el oxígeno real", texto: `Con ${fmt(e.o2)} % de oxígeno, un material que no arde en aire puede arder en tu escenario. Verifica su inflamabilidad en las condiciones de operación.`, inv: ["BASS-II", "SAFFIRE-I", "SAFFIRE-II", "SAFFIRE-III"] });
+  if (e.o2 > 31.4 && e.p < 90) r.prevencion.push({ clave: true, titulo: "Atmósfera de combustión aumentada", texto: "Por encima de 31,4 % de oxígeno con presión reducida, la NASA prevé que muchos materiales actuales deban reemplazarse.", inv: [] });
+  if (["tela", "espuma"].includes(e.material)) r.prevencion.push({ titulo: "Prefiere telas ignífugas", texto: "En BASS, Nomex HT90-40 y Ultem no ardieron en el aire de la ISS, mientras que la tela de algodón y fibra de vidrio sí.", inv: ["BASS"] });
+  if (e.gravedad === "lunar" || e.gravedad === "marciana") r.prevencion.push({ clave: true, titulo: "Los límites medidos podrían no aplicar", texto: "PSI no tiene datos en gravedad parcial y la gravedad lunar podría favorecer el fuego. Los experimentos FM2 y LUCI aportarán esos datos.", inv: [] });
+  if (!r.prevencion.length) r.prevencion.push({ titulo: "Mantén la selección de materiales actual", texto: "Tu escenario no supera las condiciones de la ISS en los factores evaluados; los criterios actuales de materiales siguen siendo la referencia.", inv: ["BASS"] });
+
+  if (e.gravedad === "micro" && e.flujo !== "quieto") r.deteccion.push({ clave: f.nivel.id !== "menor", titulo: "Detecta pronto las llamas pequeñas", texto: "Con ventilación baja, una llama pequeña y tenue puede sobrevivir con poco oxígeno. La detección temprana de humo es clave.", inv: ["SAME", "SAME-R"] });
+  r.deteccion.push({ titulo: "Calibra los detectores para microgravedad", texto: "Las partículas de humo se comportan distinto sin flotabilidad; SAME y SAME-R midieron humo de materiales de cabina en la ISS.", inv: ["SAME", "SAME-R", "DAFT / DAFT-2"] });
+
+  r.supresion.push({ titulo: "Dilución con CO₂ o helio", texto: "FLEX estudió cómo la dilución de la atmósfera con dióxido de carbono o helio apaga las llamas.", inv: ["FLEX", "FLEX-2"] });
+  if (e.gravedad === "micro" && e.o2 >= 30) r.supresion.push({ clave: true, titulo: "Cortar la ventilación podría no bastar", texto: "Con oxígeno elevado, ensayos sin flujo sugieren que la llama puede sobrevivir sin ventilación. No confíes solo en apagar los ventiladores.", inv: ["BASS-II"] });
+  else if (e.gravedad === "micro") r.supresion.push({ titulo: "Cortar la ventilación ayuda", texto: "Sin flujo y con oxígeno moderado, la llama tiende a apagarse por falta de oxígeno.", inv: ["BASS"] });
+  return r;
+}
+
+function pintarFuego(animar) {
+  const e = estado.escExaminado;
+  estado.palanca = null;
+  const posIss = posicionMedidor(0);
+  $("#zona-fuego").innerHTML = `<div class="bloque fuego">
+    <div class="resumen-cab"><div><h3>Favorabilidad para un incendio</h3>
+      <p class="ayuda" style="margin:0">Tu escenario comparado con la atmósfera de la estación espacial: 21 % de O₂ y 14,7 psi.</p></div></div>
+    <div class="vista-ajuste" id="vista-ajuste" hidden></div>
+    <div class="fuego-grid">
+      <div class="llamas">
+        <figure class="llama-tarjeta"><div class="escena-llama"><svg id="llama-iss" viewBox="0 0 160 200" role="img" aria-label="Llama de referencia en la ISS"></svg></div>
+          <figcaption><span class="llama-nombre">Estación espacial</span><span class="llama-cond">Tela, 21 % O₂, 14,7 psi, microgravedad, ventilación suave</span></figcaption></figure>
+        <figure class="llama-tarjeta tuya"><div class="escena-llama"><svg id="llama-tuya" viewBox="0 0 160 200" role="img" aria-label="Llama de tu escenario"></svg></div>
+          <figcaption><span class="llama-nombre" id="nombre-tuya">Tu escenario</span><span class="llama-cond" id="cond-tuya"></span></figcaption></figure>
+      </div>
+      <div>
+        <div class="nivel-fuego" id="nivel-fuego" aria-live="polite"></div>
+        <div class="medidor-fuego" role="img" id="medidor-fuego">
+          <div class="medidor-tramos"><span></span><span></span><span></span><span></span></div>
+          <span class="marca-iss" style="left:${posIss}%">ISS</span>
+          <span class="indicador-fuego" id="indicador-fuego" style="left:${posIss}%"></span>
+          <div class="medidor-etiquetas">${NIVELES_FUEGO.map((n) => `<span data-nivel="${n.id}">${n.nombre}</span>`).join("")}</div>
+        </div>
+        <div class="factores" id="factores">
+          <div class="factor escala" aria-hidden="true"><span></span><div class="escala-factores"><span>← Menos favorable</span><span>Más favorable →</span></div></div>
+          ${factoresFuego(e).factores.map((x) => `<div class="factor" data-factor="${x.id}">
+            <span class="factor-nombre">${x.nombre}</span>
+            <div class="factor-barra"><span></span></div>
+            <p class="factor-detalle"></p></div>`).join("")}
+        </div>
+      </div>
+    </div>
+    <div class="palancas-bloque"><h4>¿Qué cambiarías?</h4>
+      <p class="ayuda">Toca un ajuste para ver su efecto en la llama y en el medidor. Tu escenario no se modifica.</p>
+      <div class="palancas" id="palancas"></div></div>
+    <div class="recomendaciones" id="recomendaciones"></div>
+    <p class="aviso-fuego">Indicador orientativo basado en tendencias publicadas de estos experimentos. La llama es una ilustración, no una simulación de combustión, y no sustituye los ensayos de inflamabilidad de materiales de la NASA.</p>
+    <details class="fuentes"><summary>Fuentes de las reglas</summary><ul>${FUENTES_FUEGO.map(([t, u]) => `<li><a href="${u}" target="_blank" rel="noopener">${esc(t)}</a></li>`).join("")}</ul></details>
+  </div>`;
+
+  const iss = $("#llama-iss"), tuya = $("#llama-tuya");
+  construirLlama(iss, "iss"); construirLlama(tuya, "tuya");
+  dibujarLlama(iss, paramsLlama(REF_ISS));
+  actualizarVistaFuego(e, animar ? "encender" : "directo");
+  pintarPalancas(); pintarRecomendaciones(e);
+}
+
+function actualizarVistaFuego(e, modo) {
+  const R = factoresFuego(e);
+  const nv = $("#nivel-fuego");
+  nv.className = "nivel-fuego n-" + R.nivel.id;
+  nv.innerHTML = `<b>${R.nivel.nombre}</b><span>${R.vivo ? `favorabilidad ${signo(R.total)} frente a la ISS` : "por debajo del límite de oxígeno: la llama no se sostiene"}</span>`;
+  $("#cond-tuya").textContent = condicionesTxt(e);
+  $("#nombre-tuya").textContent = estado.palanca ? "Tu escenario con el ajuste" : "Tu escenario";
+  $("#medidor-fuego").setAttribute("aria-label", "Nivel: " + R.nivel.nombre);
+  document.querySelectorAll(".medidor-etiquetas span").forEach((s) => s.classList.toggle("activo", s.dataset.nivel === R.nivel.id));
+
+  const ind = $("#indicador-fuego"), destino = posicionMedidor(R.total) + "%";
+  const encender = modo === "encender" && !REDUCIR_MOVIMIENTO.matches;
+  if (encender) setTimeout(() => { ind.style.left = destino; }, 650); else ind.style.left = destino;
+
+  const orden = [...R.factores].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).map((x) => x.id);
+  for (const x of R.factores) {
+    const fila = document.querySelector(`[data-factor="${x.id}"]`);
+    fila.querySelector(".factor-detalle").innerHTML = `${esc(x.texto)} <span class="fuente">${esc(x.fuente)}</span>`;
+    const barra = fila.querySelector(".factor-barra span");
+    const w = Math.min(50, Math.abs(x.delta) / 4 * 50);
+    const aplicar = () => {
+      barra.className = x.delta > 0 ? "sube" : x.delta < 0 ? "baja" : "";
+      barra.style.width = w + "%";
+      barra.style.left = (x.delta < 0 ? 50 - w : 50) + "%";
+    };
+    barra.style.transitionDelay = encender ? (900 + orden.indexOf(x.id) * 110) + "ms" : "0ms";
+    if (encender) { barra.style.width = "0%"; barra.style.left = "50%"; requestAnimationFrame(() => requestAnimationFrame(aplicar)); }
+    else aplicar();
+  }
+
+  const tuya = $("#llama-tuya"), P = paramsLlama(e);
+  if (encender) animarLlama(tuya, P, 850, { ...P, r: 0.5, opacidad: 0, hollin: 0, brasa: 0 });
+  else animarLlama(tuya, P, modo === "directo" ? 0 : 650);
+}
+
+function pintarPalancas() {
+  const e = estado.escExaminado;
+  const lista = palancasPara(e);
+  $("#palancas").innerHTML = lista.map((pa) => `<button type="button" class="palanca" data-palanca="${pa.id}" aria-pressed="${estado.palanca === pa.id}">
+      ${pa.mejor ? `<span class="etiqueta-efecto">Mayor efecto</span>` : ""}
+      <b>${esc(pa.titulo)}</b><small>${esc(pa.nota)}</small>
+      <span class="efecto ${Math.abs(pa.diferencia) < 0.01 ? "nulo" : ""}">${Math.abs(pa.diferencia) < 0.01 ? "Sin cambio en la favorabilidad" : `Favorabilidad ${signo(pa.diferencia)}, queda en: ${minuscula(pa.nivel.nombre)}`}</span>
+    </button>`).join("");
+  document.querySelectorAll("[data-palanca]").forEach((b) => b.addEventListener("click", () => {
+    const pa = lista.find((x) => x.id === b.dataset.palanca);
+    estado.palanca = estado.palanca === pa.id ? null : pa.id;
+    const vista = estado.palanca ? { ...e, ...pa.cambio } : e;
+    const aviso = $("#vista-ajuste");
+    aviso.hidden = !estado.palanca;
+    aviso.innerHTML = estado.palanca ? `<span>Viendo el efecto de: <b>${esc(pa.titulo)}</b>. Tu escenario no cambió.</span><button class="enlace" type="button" id="quitar-palanca">Volver a tu escenario</button>` : "";
+    if (estado.palanca) $("#quitar-palanca").addEventListener("click", () => { estado.palanca = null; actualizarVistaFuego(e, "transicion"); pintarPalancas(); $("#vista-ajuste").hidden = true; });
+    actualizarVistaFuego(vista, "transicion");
+    document.querySelectorAll("[data-palanca]").forEach((x) => x.setAttribute("aria-pressed", x.dataset.palanca === estado.palanca));
+  }));
+}
+
+function pintarRecomendaciones(e) {
+  const r = recomendacionesPara(e);
+  const col = (id, titulo, icono) => `<div class="col-reco"><h5><i aria-hidden="true">${icono}</i>${titulo}</h5>
+    ${r[id].map((x) => `<div class="reco ${x.clave ? "clave" : ""}"><b>${esc(x.titulo)}</b><p>${esc(x.texto)}</p>${x.inv.length ? `<div class="chips">${x.inv.map(chipInvestigacion).join("")}</div>` : ""}</div>`).join("")}</div>`;
+  $("#recomendaciones").innerHTML = `<h4>Recomendaciones para tu escenario</h4>
+    <p class="ayuda">Las marcadas con borde magenta son las más importantes para estas condiciones. Toca una investigación para ver su ficha.</p>
+    <div class="columnas-reco">${col("prevencion", "Prevención", "◆")}${col("deteccion", "Detección", "◉")}${col("supresion", "Supresión", "▼")}</div>`;
+  document.querySelectorAll("#recomendaciones [data-inv]").forEach((b) => b.addEventListener("click", () => irAInvestigacion(b.dataset.inv)));
+}
+
+/* --- Llama pequeña en la pestaña Experimento ------------------------ */
+function actualizarMiniLlama() {
+  const svg = $("#mini-llama");
+  if (!svg.querySelector(".cuerpo")) construirLlama(svg, "mini");
+  const e = estado.esc;
+  animarLlama(svg, paramsLlama(e), svg._p ? 260 : 0);
+  $("#fuego-previo").innerHTML = `Favorabilidad para un incendio: <b>${minuscula(factoresFuego(e).nivel.nombre)}</b>`;
+}
+
+/* ------------------------------------------------------------------ */
+/* Pestañas                                                            */
+/* ------------------------------------------------------------------ */
+const PESTANAS = ["experimento", "cobertura"];
+function mostrarPestana(id, enfocar) {
+  for (const p of PESTANAS) {
+    const activa = p === id;
+    const tab = $("#tab-" + p);
+    tab.setAttribute("aria-selected", activa); tab.tabIndex = activa ? 0 : -1;
+    $("#panel-" + p).hidden = !activa;
+  }
+  if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
+  if (enfocar) {
+    $("#tab-" + id).focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+  if (id === "cobertura") pintarMapa();
+}
+PESTANAS.forEach((p, i) => {
+  const tab = $("#tab-" + p);
+  tab.addEventListener("click", () => mostrarPestana(p));
+  tab.addEventListener("keydown", (ev) => {
+    if (ev.key === "ArrowRight" || ev.key === "ArrowLeft") {
+      ev.preventDefault();
+      const sig = PESTANAS[(i + (ev.key === "ArrowRight" ? 1 : PESTANAS.length - 1)) % PESTANAS.length];
+      mostrarPestana(sig, true);
+    }
+  });
+});
+window.addEventListener("hashchange", () => {
+  const id = location.hash.slice(1);
+  if (PESTANAS.includes(id)) mostrarPestana(id);
+});
+$("#ir-experimento").addEventListener("click", () => mostrarPestana("experimento", true));
+$("#reexaminar").addEventListener("click", () => examinar(false));
+
+function actualizar() { pintarFormulario(); pintarFrase(); actualizarMiniLlama(); if (!estado.escExaminado) pintarMapa(); marcarDesactualizado(); }
+
+pintarMarcas(); enlazarControles(); actualizar(); cargarInicial();
+mostrarPestana(PESTANAS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "experimento");
+</script>
+</body>
+</html>

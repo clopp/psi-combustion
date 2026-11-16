@@ -1,0 +1,35 @@
+.env
+datos/salida/*
+!datos/salida/.gitkeep
+# Sitio generado (se crea con construir_sitio.py)
+_site/
+
+# Claves y configuración local: la clave de la API de Claude NUNCA se sube
+*.env
+.env.*
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# Sistema
+.DS_Store
+Thumbs.db
+# Sitio generado
+
+# Claves: nunca se suben (el ejemplo sí)
+!.env.ejemplo
+
+
+
+# Claude Code: ajustes locales
+.claude/settings.local.json
+
+# Archivos de trabajo
+kit_claude_code.zip
+
